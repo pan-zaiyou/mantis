@@ -5,10 +5,7 @@
   "license": "AGPL-3.0",
   "readme": "README.md",
   "packageManager": "pnpm@7.14.1",
-  "engineStrict": true,
-  "engines": {
-    "node": ">=16.0.0||>=18.0.0",
-    "pnpm": ">=7.14.1"
+  "engineStrict": true
   },
   "dependencies": {
     "@ahooksjs/use-url-state": "^3.5.1",
