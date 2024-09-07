@@ -35,7 +35,7 @@
       }
     },
     "footer": {
-      "copyright": "© {{date}} <0>萌物云</0> 版權所有",
+      "copyright": "© {{date}} <0>跨越长城</0> 版權所有",
       "contact-us": "聯繫我們",
       "privacy-policy": "隱私政策",
       "terms-of-service": "服務條款"
@@ -84,7 +84,7 @@
     "password_confirm_invalid": "您兩次輸入的密碼不一致",
     "password_confirm_required": "您必須再次輸入密碼",
     "go-login": "已有賬戶？登入",
-    "license_agree": "您確保已經完整閱讀併同意我們的 <0>服務協議</0> 和 <1>隱私政策</1>",
+    "license_agree": "您確保已經閱讀併同意我們的 <0>服務協議</0> 和 <1>隱私政策</1>",
     "agree_required": "您必須同意服務協議和隱私政策",
     "invite_code": "邀請碼",
     "invite_code_max": "邀請碼長度不能超過 {{count}} 個字符",
@@ -136,7 +136,7 @@
       "white_email": "本站暫不支持該郵箱尾碼注册"
     },
     "footer": {
-      "copyright": "© {{date}} <0>萌物云</0> 版權所有",
+      "copyright": "© {{date}} <0>跨越长城</0> 版權所有",
       "links": {
         "terms": "服務協議",
         "privacy": "隱私政策"
