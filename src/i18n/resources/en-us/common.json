@@ -35,7 +35,7 @@
       }
     },
     "footer": {
-      "copyright": "© {{date}} <0>MENGWU</0> All Rights Reserved",
+      "copyright": "© {{date}} <0>跨越长城</0> All Rights Reserved",
       "contact-us": "Contact Us",
       "privacy-policy": "Privacy",
       "terms-of-service": "Terms"
@@ -136,7 +136,7 @@
       "white_email": "This email suffix registration is currently not supported"
     },
     "footer": {
-      "copyright": "© {{date}} <0>MENGWU</0> All Right Reserved.",
+      "copyright": "© {{date}} <0>跨越长城</0> All Right Reserved.",
       "links": {
         "terms": "Terms of Service",
         "privacy": "Privacy Policy"
