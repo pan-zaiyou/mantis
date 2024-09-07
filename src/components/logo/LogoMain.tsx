@@ -11,7 +11,7 @@ const LogoMain = ({ reverse, ...others }: { reverse?: boolean }) => {
           fill={theme.palette.mode === 'dark' || reverse ? theme.palette.common.white : theme.palette.common.black}
         />
       </svg>
-      <span style={{ fontSize: '18px', fontWeight: 'bold', color: theme.palette.mode === 'dark' || reverse ? theme.palette.common.white : theme.palette.common.black }}>
+      <span style={{ fontSize: '20px', fontWeight: 'bold', color: theme.palette.mode === 'dark' || reverse ? theme.palette.common.white : theme.palette.common.black }}>
         跨越长城
       </span>
     </div>
