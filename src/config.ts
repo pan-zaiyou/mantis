@@ -32,7 +32,7 @@ const config: DefaultConfigProps = {
   description: "天下武功 唯快不破",
   logo: "",
   api: "https://sub.heycloud.club",
-  languages: ["zh-CN", "en-US"],
+  languages: ["en-US","zh-CN","zh-TW"],
   googleAnalytics: {
     measurementId: getGA()
   },
