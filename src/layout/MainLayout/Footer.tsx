@@ -44,7 +44,7 @@ const Footer = () => {
     <Stack direction="row" className={classes.root}>
       <Typography variant="caption">
         <AppTrans i18nKey={"layout.footer.copyright"} tOptions={{ date }}>
-          <Link href="官网链接" target="_blank" color="textPrimary" underline="hover" />
+          <Link href="https://跨越长城.com" target="_blank" color="textPrimary" underline="hover" />
         </AppTrans>
       </Typography>
       <Stack spacing={1.5} direction="row" className={classes.right}>
@@ -53,10 +53,10 @@ const Footer = () => {
             {t("layout.footer.contact-us")}
           </Link>
         )}
-        <Link component={RouterLink} to="隐私协议链接" target="_blank" variant="caption" color="textPrimary">
+        <Link component={RouterLink} to="https://跨越长城.com" target="_blank" variant="caption" color="textPrimary">
           {t("layout.footer.privacy-policy")}
         </Link>
-        <Link component={RouterLink} to="服务协议链接" target="_blank" variant="caption" color="textPrimary">
+        <Link component={RouterLink} to="https://跨越长城.com" target="_blank" variant="caption" color="textPrimary">
           {t("layout.footer.terms-of-service")}
         </Link>
       </Stack>
