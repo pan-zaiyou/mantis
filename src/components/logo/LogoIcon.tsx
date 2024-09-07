@@ -10,7 +10,7 @@ const LogoIcon = () => {
     /**
      * 如果你希望使用图片而不是 SVG，请取消注释以下内容，并注释掉 <svg> 元素。
      *
-     * <img src={theme.palette.mode === 'dark' ? logoIconDark : logoIcon} alt="XGW" width="100" />
+     * <img src={theme.palette.mode === 'dark' ? logoIconDark : logoIcon} alt="跨越长城" width="100" />
      *
      */
     <svg
