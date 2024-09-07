@@ -54,9 +54,6 @@ const Footer = () => {
           </Link>
         )}
         <Link component={RouterLink} to="https://跨越长城.com" target="_blank" variant="caption" color="textPrimary">
-          {t("layout.footer.privacy-policy")}
-        </Link>
-        <Link component={RouterLink} to="https://跨越长城.com" target="_blank" variant="caption" color="textPrimary">
           {t("layout.footer.terms-of-service")}
         </Link>
       </Stack>
