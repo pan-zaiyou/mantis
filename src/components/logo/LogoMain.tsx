@@ -1,7 +1,7 @@
 // material-ui
 import { useTheme } from '@mui/material/styles';
-import logoDark from 'assets/images/logo-dark.svg';
-import logo from 'assets/images/logo.svg';
+import logoDark from 'src/assets/images/logo-dark.svg';
+import logo from 'src/assets/images/logo.svg';
 
 // ==============================|| LOGO SVG ||============================== //
 
@@ -14,7 +14,7 @@ const LogoMain = ({ reverse, ...others }: { reverse?: boolean }) => {
         alt="跨越长城" 
         width="100" 
       />
-      <span style={{ marginLeft: '10px', fontSize: '18px', fontWeight: 'bold' }}>MOEU</span>
+      <span style={{ marginLeft: '10px', fontSize: '18px', fontWeight: 'bold' }}>跨越长城</span>
     </div>
   );
 };
