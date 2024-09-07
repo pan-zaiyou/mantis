@@ -1,30 +1,19 @@
-// material-ui
+import React from 'react';
 import { useTheme } from '@mui/material/styles';
-// import logoDark from 'assets/images/logo-dark.svg';
-// import logo from 'assets/images/logo.svg';
 
-/**
- * if you want to use image instead of <svg> uncomment following.
- *
- * import logoDark from 'assets/images/logo-dark.svg';
- * import logo from 'assets/images/logo.svg';
- *
- */
+// 导入 SVG 文件作为组件
+import { ReactComponent as LogoDark } from 'assets/images/logo-dark.svg';
+import { ReactComponent as Logo } from 'assets/images/logo.svg';
 
-// ==============================|| LOGO SVG ||============================== //
-
-const LogoMain = ({ reverse, ...others }: { reverse?: boolean }) => {
+// LogoMain 组件
+const LogoMain = ({ reverse, ...others }) => {
   const theme = useTheme();
+
+  // 根据主题模式选择不同的 SVG 组件
+  const LogoComponent = theme.palette.mode === 'dark' ? LogoDark : Logo;
+
   return (
-    /**
-     * if you want to use image instead of svg uncomment following, and comment out <svg> element.
-     *
-     * <img src={theme.palette.mode === 'dark' ? logoDark : logo} alt="Mantis" width="100" />
-     *
-     */
-    <>
-      <img src={theme.palette.mode === 'dark' ? "暗黑模式logourl" : "亮色模式logourl"} alt="MOEU" width="100" />
-    </>
+    <LogoComponent width="100" height="auto" {...others} />
   );
 };
 
