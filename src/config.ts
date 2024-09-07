@@ -19,7 +19,7 @@ const config: DefaultConfigProps = {
   api: "https://sub.heycloud.club",
   languages: ["en-US","zh-CN","zh-TW"],
   emojiEndpoint: "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/{{code}}.png",
-  startYear: 2021
+  startYear: 2019
 };
 
 export default config;
