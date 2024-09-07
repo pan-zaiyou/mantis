@@ -34,7 +34,7 @@ const AuthFooter: React.FC = () => {
       >
         <Typography variant="subtitle2" color="secondary" component="span">
           <AppTrans i18nKey={"auth.footer.copyright"} tOptions={{ date }}>
-            <Link href="https://t.me/bokoie" target="_blank" color="secondary" underline="hover" />
+            <Link href="https://跨越长城.com" target="_blank" color="secondary" underline="hover" />
           </AppTrans>
         </Typography>
 
@@ -47,7 +47,7 @@ const AuthFooter: React.FC = () => {
             variant="subtitle2"
             color="secondary"
             component={Link}
-            href={"https://moeu.top"}
+            href={"https://跨越长城.com"}
             target="_blank"
             underline="hover"
           >
@@ -57,7 +57,7 @@ const AuthFooter: React.FC = () => {
             variant="subtitle2"
             color="secondary"
             component={Link}
-            href={"https://moeu.top"}
+            href={"https://跨越长城.com"}
             target="_blank"
             underline="hover"
           >
