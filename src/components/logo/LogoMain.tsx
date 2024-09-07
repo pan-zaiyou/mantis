@@ -1,29 +1,30 @@
+// material-ui
 import { useTheme } from '@mui/material/styles';
-import LogoLight from 'src/assets/images/logo.svg';
-import LogoDark from 'src/assets/images/logo-dark.svg';
+// import logoDark from 'assets/images/logo-dark.svg';
+// import logo from 'assets/images/logo.svg';
 
-const LogoMain = () => {
+/**
+ * if you want to use image instead of <svg> uncomment following.
+ *
+ * import logoDark from 'assets/images/logo-dark.svg';
+ * import logo from 'assets/images/logo.svg';
+ *
+ */
+
+// ==============================|| LOGO SVG ||============================== //
+
+const LogoMain = ({ reverse, ...others }: { reverse?: boolean }) => {
   const theme = useTheme();
-  const isDarkMode = theme.palette.mode === 'dark';
-
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: '-5px',
-        left: '0px',
-        zIndex: 10,
-      }}
-    >
-      <img
-        src={isDarkMode ? LogoDark : LogoLight} // 根据主题模式选择不同的SVG
-        alt="Logo"
-        style={{
-          width: '125px',
-          height: '125px',
-        }}
-      />
-    </div>
+    /**
+     * if you want to use image instead of svg uncomment following, and comment out <svg> element.
+     *
+     * <img src={theme.palette.mode === 'dark' ? logoDark : logo} alt="Mantis" width="100" />
+     *
+     */
+    <>
+      <img src={theme.palette.mode === 'dark' ? "暗黑模式logourl" : "亮色模式logourl"} alt="MOEU" width="100" />
+    </>
   );
 };
 
