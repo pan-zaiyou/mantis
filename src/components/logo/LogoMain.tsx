@@ -6,8 +6,8 @@ const LogoMain = ({ reverse, ...others }: { reverse?: boolean }) => {
   return (
     <div style={{ display: 'flex', alignItems: 'center', ...others }}>
       <svg
-        width="43"
-        height="43"
+        width="42"
+        height="42"
         viewBox="0 0 12 12"
         xmlns="http://www.w3.org/2000/svg"
         style={{ marginRight: '4px', verticalAlign: 'middle' }}  {/* 确保图标与字体在同一行 */}
@@ -17,7 +17,7 @@ const LogoMain = ({ reverse, ...others }: { reverse?: boolean }) => {
           fill={theme.palette.mode === 'dark' || reverse ? theme.palette.common.white : theme.palette.common.black}
         />
       </svg>
-      <span style={{ fontSize: '20px', fontWeight: 'bold', color: theme.palette.mode === 'dark' || reverse ? theme.palette.common.white : theme.palette.common.black, verticalAlign: 'middle' }}>
+      <span style={{ fontSize: '20px', fontWeight: 'bold', color: theme.palette.mode === 'dark' || reverse ? theme.palette.common.white : theme.palette.common.black, lineHeight: '42px' }}>
         跨越长城
       </span>
     </div>
