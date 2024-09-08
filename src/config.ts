@@ -26,18 +26,18 @@ const config: DefaultConfigProps = {
   miniDrawer: false,
   container: true,
   themeDirection: "ltr",
-  title: "跨越长城",
+  title: "老叔基场",
   title_split: " - ",
   background_url: "https://unsplash.com/random",
   description: "天下武功 唯快不破",
   logo: "",
-  api: "https://sub.heycloud.club",
+  api: "https://dash.feichingisme.online",
   languages: ["en-US","zh-CN","zh-TW"],
   googleAnalytics: {
     measurementId: getGA()
   },
   emojiEndpoint: "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/{{code}}.png",
-  startYear: 2019
+  startYear: 2022
 };
 
 export default config;
