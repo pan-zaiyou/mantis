@@ -26,12 +26,12 @@ const config: DefaultConfigProps = {
   miniDrawer: false,
   container: true,
   themeDirection: "ltr",
-  title: "老叔基场",
+  title: "跨越长城",
   title_split: " - ",
   background_url: "https://unsplash.com/random",
   description: "天下武功 唯快不破",
   logo: "",
-  api: "https://dash.feichingisme.online",
+  api: "https://sub.heycloud.club",
   languages: ["en-US","zh-CN","zh-TW"],
   googleAnalytics: {
     measurementId: getGA()
