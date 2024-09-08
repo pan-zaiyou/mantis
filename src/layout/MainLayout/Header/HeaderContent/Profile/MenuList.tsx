@@ -14,10 +14,8 @@ import config from "@/config";
 // assets
 import {
   LogoutOutlined,
-  TransactionOutlined,
   UsergroupAddOutlined,
-  UserOutlined,
-  WifiOutlined
+  UserOutlined
 } from "@ant-design/icons";
 
 // ==============================|| HEADER PROFILE - PROFILE TAB ||============================== //
@@ -46,16 +44,6 @@ const MenuList: React.FC = () => {
         icon: <UserOutlined />,
         text: t("layout.header.profile.profile_center"),
         onClick: () => navigate("/profile")
-      },
-      {
-        icon: <TransactionOutlined />,
-        text: t("layout.header.profile.transaction_list"),
-        onClick: () => navigate("/order")
-      },
-      {
-        icon: <WifiOutlined />,
-        text: t("layout.header.profile.traffic_statistics"),
-        onClick: () => navigate("/traffic")
       },
       {
         icon: <UsergroupAddOutlined />,
