@@ -30,7 +30,6 @@ import BrightnessMediumOutlinedIcon from "@mui/icons-material/BrightnessMediumOu
 import Brightness5OutlinedIcon from "@mui/icons-material/Brightness5Outlined";
 import Brightness4OutlinedIcon from "@mui/icons-material/Brightness4Outlined";
 import Brightness6OutlinedIcon from "@mui/icons-material/Brightness6Outlined";
-import AccessTimeOutlinedIcon from "@mui/icons-material/AccessTimeOutlined";
 
 const useStyles = makeStyles<{ open: boolean }>()((theme, { open }) => ({
   root: { flexShrink: 0 },
@@ -139,7 +138,7 @@ const DarkModeSwitchButton: React.FC = () => {
                       <ListItemButton
                         onClick={() => {
                           dispatch(setThemeMode("system"));
-                          handleClose(); // 添加此行
+                          handleClose();
                         }}
                         selected={themeMode === "system"}
                       >
@@ -154,24 +153,8 @@ const DarkModeSwitchButton: React.FC = () => {
                     <ListItem disablePadding divider>
                       <ListItemButton
                         onClick={() => {
-                          dispatch(setThemeMode("time"));
-                          handleClose(); // 添加此行
-                        }}
-                        selected={themeMode === "time"}
-                      >
-                        <Stack direction={"row"} spacing={2} alignItems={"center"}>
-                          <AccessTimeOutlinedIcon className={classes.icon} />
-                          <Typography variant="h6" className={classes.listItemTextTypography} noWrap>
-                            <Trans i18nKey={"layout.header.dark-mode-switch.follow-times"}>跟随时间</Trans>
-                          </Typography>
-                        </Stack>
-                      </ListItemButton>
-                    </ListItem>
-                    <ListItem disablePadding divider>
-                      <ListItemButton
-                        onClick={() => {
                           dispatch(setThemeMode("light"));
-                          handleClose(); // 添加此行
+                          handleClose();
                         }}
                         selected={themeMode === "light"}
                       >
@@ -187,7 +170,7 @@ const DarkModeSwitchButton: React.FC = () => {
                       <ListItemButton
                         onClick={() => {
                           dispatch(setThemeMode("dark"));
-                          handleClose(); // 添加此行
+                          handleClose();
                         }}
                         selected={themeMode === "dark"}
                       >
