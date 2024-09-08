@@ -37,7 +37,7 @@ const config: DefaultConfigProps = {
     measurementId: getGA()
   },
   emojiEndpoint: "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/{{code}}.png",
-  startYear: 2022
+  startYear: 2019
 };
 
 export default config;
