@@ -44,7 +44,7 @@
   "login": {
     "title": "登录",
     "email": "邮箱",
-    "email_placeholder": "请输入邮箱",
+    "email_placeholder": "请输入您的邮箱",
     "email_required": "您必须输入邮箱",
     "email_invalid": "您输入的邮箱无效",
     "password": "密码",
@@ -57,7 +57,7 @@
   "register": {
     "title": "注册",
     "email": "邮箱",
-    "email_placeholder": "请输入邮箱",
+    "email_placeholder": "请输入您的邮箱",
     "email_required": "您必须输入邮箱",
     "email_invalid": "您输入的邮箱无效",
     "email_max": "邮箱长度不能超过 {{count}} 个字符",
@@ -149,7 +149,7 @@
       "title": "公告"
     },
     "subscription-card": {
-      "title": "订阅",
+      "title": "我的订阅",
       "description": "您的订阅信息",
       "plan": "计划",
       "expire_forever": "此订阅长期有效",
@@ -166,7 +166,7 @@
         "secondary": "查看使用教程以了解如何使用本站服务"
       },
       "subscribe": {
-        "primary": "一键订阅",
+        "primary": "一键导入",
         "secondary": "快速将节点导入对应客户端进行使用",
         "copy": "复制订阅链接",
         "scan": "扫描二维码",
