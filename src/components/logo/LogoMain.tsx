@@ -12,7 +12,7 @@ const LogoMain = ({ reverse, ...others }: { reverse?: boolean }) => {
         />
       </svg>
       <span style={{ fontSize: '20px', fontWeight: 'bold', color: theme.palette.mode === 'dark' || reverse ? theme.palette.common.white : theme.palette.common.black }}>
-        HeyCloud
+        跨越长城
       </span>
     </div>
   );
