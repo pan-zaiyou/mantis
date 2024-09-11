@@ -1,4 +1,2 @@
-User-agent: *
-Allow: /login
-Allow: /register
-Allow: /forgot-password
+User-agent: Googlebot
+Disallow:
