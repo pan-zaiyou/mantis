@@ -167,7 +167,7 @@
         "secondary": "查看使用教程以了解如何使用本站服务"
       },
       "subscribe": {
-        "primary": "一键订阅",
+        "primary": "一键导入",
         "secondary": "快速将节点导入对应客户端进行使用",
         "copy": "复制订阅链接",
         "scan": "扫描二维码",
