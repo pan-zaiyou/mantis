@@ -149,7 +149,7 @@
       "title": "公告"
     },
     "subscription-card": {
-      "title": "订阅",
+      "title": "我的订阅",
       "description": "您的订阅信息",
       "plan": "计划",
       "expire_forever": "此订阅长期有效",
