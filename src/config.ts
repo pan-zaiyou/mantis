@@ -31,7 +31,7 @@ const config: DefaultConfigProps = {
   background_url: "https://unsplash.com/random",
   description: "天下武功 唯快不破",
   logo: "",
-  api: "https://sub.heycloud.club",
+  api: "https://xn--wgv9cz54cexz.com",
   languages: ["en-US","zh-CN","zh-TW"],
   googleAnalytics: {
     measurementId: getGA()
