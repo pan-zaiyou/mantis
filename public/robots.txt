@@ -1,5 +1,6 @@
 User-agent: *
-Disallow: /
+Disallow: /api/   # 如果你有需要禁止的API目录
 Allow: /login
 Allow: /register
 Allow: /forgot-password
+Allow: /           # 允许抓取根目录及其他页面
