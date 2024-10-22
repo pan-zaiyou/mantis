@@ -1,5 +1,5 @@
 User-agent: *
+Disallow: /
 Allow: /login
 Allow: /register
 Allow: /forgot-password
-Allow: /           # 允许抓取根目录及其他页面
