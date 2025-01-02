@@ -157,7 +157,7 @@
       "expire_is": "此订阅已到期，请续费后使用",
       "expire_limited_other": "于 {{date}} 到期，距离到期还有 {{count}} 天，将于 {{reset_date}} 天后重置流量",
       "traffic": "已用流量 {{used}} GB / 总计流量 {{total}} GB",
-      "no-subscription": "您好，欢迎加入！发现您还没购买订阅哦，先购买解锁全部功能吧😊！"
+      "no-subscription": "您好，欢迎加入！发现您还没购买订阅哦，先购买订阅解锁全部功能吧😊！"
     },
     "shortcut": {
       "title": "捷径",
