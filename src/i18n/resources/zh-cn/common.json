@@ -84,7 +84,7 @@
     "password_confirm_invalid": "您两次输入的密码不一致",
     "password_confirm_required": "您必须再次输入密码",
     "go-login": "已有账户？登录",
-    "license_agree": "您确保已经阅读并同意我们的 <0>服务协议</0> 和 <1>隐私政策</1>",
+    "license_agree": "您确保已经完整阅读并同意我们的 <0>服务协议</0> 和 <1>隐私政策</1>",
     "agree_required": "您必须同意服务协议和隐私政策",
     "invite_code": "邀请码",
     "invite_code_max": "邀请码长度不能超过 {{count}} 个字符",
@@ -149,7 +149,7 @@
       "title": "公告"
     },
     "subscription-card": {
-      "title": "我的订阅",
+      "title": "订阅",
       "description": "您的订阅信息",
       "plan": "计划",
       "expire_forever": "此订阅长期有效",
@@ -157,7 +157,7 @@
       "expire_is": "此订阅已到期，请续费后使用",
       "expire_limited_other": "于 {{date}} 到期，距离到期还有 {{count}} 天，将于 {{reset_date}} 天后重置流量",
       "traffic": "已用流量 {{used}} GB / 总计流量 {{total}} GB",
-      "no-subscription": "您好，欢迎加入！发现您还没购买订阅哦，先购买解锁全部功能吧😊！"
+      "no-subscription": "您还没有订阅"
     },
     "shortcut": {
       "title": "捷径",
@@ -167,7 +167,7 @@
         "secondary": "查看使用教程以了解如何使用本站服务"
       },
       "subscribe": {
-        "primary": "一键导入",
+        "primary": "一键订阅",
         "secondary": "快速将节点导入对应客户端进行使用",
         "copy": "复制订阅链接",
         "scan": "扫描二维码",
@@ -179,7 +179,7 @@
         "quantumultx": "导入至 Quantumult X",
         "surge": "导入至 Surge",
         "stash": "导入至 Stash",
-        "buy-button": "购买订阅"
+        "buy-button": "购买"
       },
       "purchase": {
         "primary_purchased": "续费订阅",
@@ -235,7 +235,7 @@
         }
       },
       "products-header": {
-        "search": "搜索套餐",
+        "search": "搜索节点",
         "filter-button": "筛选"
       },
       "product-card": {
@@ -297,7 +297,8 @@
         "traffic_limited": "{{count}} GB",
         "traffic_unlimited": "不限",
         "product-price": "价格",
-        "next-billing-date": "下次续费"
+        "next-billing-date": "下次续费",
+        "deposit": "余额充值"
       },
       "status-card": {
         "status_pending": "待支付",
@@ -358,7 +359,7 @@
         "status-value_finished": "已完成",
         "period_header": "服务周期",
         "period_description": "服务周期是您服务的有效期。",
-        "period-value": "undefined",
+        "period-value": "无",
         "period-value_onetime_price": "一次性付款",
         "period-value_month_price": "月付",
         "period-value_quarter_price": "季付",
@@ -366,6 +367,7 @@
         "period-value_year_price": "年付",
         "period-value_two_year_price": "两年付",
         "period-value_three_year_price": "三年付",
+        "period-value_none": "无",
         "created_at_header": "创建时间",
         "created_at_description": "创建时间是订单在系统中生成的时间。",
         "action_header": "操作",
@@ -480,7 +482,15 @@
         "balance_value": "{{value}} CNY",
         "commission_balance_key": "推广佣金",
         "commission_balance_value": "{{value}} CNY"
-      }
+      },
+      "button": "充值",
+      "recharge-dialog": {
+        "title": "余额充值",
+        "amount-label": "充值金额",
+        "cancel": "取消",
+        "confirm": "确定"
+      },
+      "auto-renew": "自动续费"
     },
     "change-password-card": {
       "title": "修改密码",
