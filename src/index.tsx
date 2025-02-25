@@ -23,17 +23,6 @@ import "@/analytics";
 import "@fontsource/roboto";
 import "simplebar-react/dist/simplebar.min.css";
 
-// Crisp Chat Integration
-window.$crisp = [];
-window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
-(function() {
-  const d = document;
-  const s = d.createElement("script");
-  s.src = "https://client.crisp.chat/l.js";
-  s.async = 1;
-  d.getElementsByTagName("head")[0].appendChild(s);
-})();
-
 // hash router change to browser router
 if (window.location.hash && window.location.pathname === "/") {
   window.location.href = new URL(window.location.hash, window.location.href).href;
@@ -49,6 +38,12 @@ const root = createRoot(container!);
 const ro = new ResizeObserver((entries, observer) =>
   entries.forEach((entry) => {
     const { width, height } = entry.contentRect;
+
+    // if (import.meta.env.DEV) {
+    //   console.log("Element:", entry.target);
+    //   console.log(`Element's size: ${width}px x ${height}px`);
+    //   console.log(`Element's paddings: ${top}px ${right}px ${bottom}px ${left}px`);
+    // }
 
     document.documentElement.style.setProperty("--width", `${width}px`);
     document.documentElement.style.setProperty("--height", `${height}px`);
@@ -70,3 +65,7 @@ root.render(
     </ConfigProvider>
   </ReduxProvider>
 );
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
