@@ -2,6 +2,17 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
+// Crisp Chat Integration
+window.$crisp = [];
+window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
+(function () {
+  const d = document;
+  const s = d.createElement("script");
+  s.src = "https://client.crisp.chat/l.js";
+  s.async = 1;
+  d.getElementsByTagName("head")[0].appendChild(s);
+})();
+
 // third-party
 import { Provider as ReduxProvider } from "react-redux";
 import "react-app-polyfill/ie11";
@@ -39,12 +50,6 @@ const ro = new ResizeObserver((entries, observer) =>
   entries.forEach((entry) => {
     const { width, height } = entry.contentRect;
 
-    // if (import.meta.env.DEV) {
-    //   console.log("Element:", entry.target);
-    //   console.log(`Element's size: ${width}px x ${height}px`);
-    //   console.log(`Element's paddings: ${top}px ${right}px ${bottom}px ${left}px`);
-    // }
-
     document.documentElement.style.setProperty("--width", `${width}px`);
     document.documentElement.style.setProperty("--height", `${height}px`);
 
@@ -65,6 +70,13 @@ root.render(
     </ConfigProvider>
   </ReduxProvider>
 );
+
+// 如果需要在用户登录后设置用户信息，可以在此处添加代码
+// 示例：
+// const userEmail = "user@example.com"; // 替换为实际用户的邮箱
+// if (window.$crisp) {
+//   window.$crisp.push(["set", "user", { email: userEmail }]);
+// }
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
