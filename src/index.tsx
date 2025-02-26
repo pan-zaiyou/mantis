@@ -33,7 +33,7 @@ const getCurrentUserEmail = () => {
 
 // Crisp 集成代码
 window.$crisp = [];
-window.CRISP_WEBSITE_ID = "your_website_id";  // 替换为你的 Crisp 网站 ID
+window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";  // 替换为你的 Crisp 网站 ID
 
 (function() {
   var d = document;
