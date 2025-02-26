@@ -1,8 +1,7 @@
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { useSelector } from "react-redux";  // 如果你使用 Redux
-// import { useContext } from "react";  // 如果你使用 React Context
+import { useSelector } from "react-redux"; // 如果你使用 Redux
 
 // third-party
 import { Provider as ReduxProvider } from "react-redux";
@@ -27,14 +26,14 @@ import "simplebar-react/dist/simplebar.min.css";
 
 // 假设通过 Redux 获取当前用户邮箱
 const getCurrentUserEmail = () => {
-  // 假设 Redux 中保存了用户的登录信息
-  const user = useSelector((state: any) => state.user); // 根据实际的 state 和 reducer 结构调整
-  return user ? user.email : null;  // 假设 `user.email` 存储了用户的邮箱
+  const user = useSelector((state: any) => state.user); // 获取 Redux store 中的用户信息
+  console.log("Current user:", user);  // 打印用户对象
+  return user ? user.email : null;  // 返回用户邮箱
 };
 
 // Crisp 集成代码
 window.$crisp = [];
-window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";  // 替换为你的 Crisp 网站 ID
+window.CRISP_WEBSITE_ID = "your_website_id";  // 替换为你的 Crisp 网站 ID
 
 (function() {
   var d = document;
@@ -44,11 +43,16 @@ window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";  // 替换为�
   s.onload = function() {
     console.log("Crisp script loaded successfully");
 
-    // 动态获取当前用户的邮箱
+    // 获取邮箱
     const email = getCurrentUserEmail();
+    console.log("Current user email:", email);  // 打印邮箱，检查是否正确
+
+    // 只有在邮箱存在时才调用 Crisp API 设置用户信息
     if (email) {
       window.$crisp.push(["set", "user:email", email]);
       console.log(`User email set: ${email}`);
+    } else {
+      console.log("User email is not available.");
     }
   };
   d.getElementsByTagName("head")[0].appendChild(s);
@@ -88,7 +92,3 @@ root.render(
     </ConfigProvider>
   </ReduxProvider>
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
