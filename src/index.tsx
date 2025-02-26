@@ -1,6 +1,8 @@
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { useSelector } from "react-redux";  // 如果你使用 Redux
+// import { useContext } from "react";  // 如果你使用 React Context
 
 // third-party
 import { Provider as ReduxProvider } from "react-redux";
@@ -23,10 +25,11 @@ import "@/analytics";
 import "@fontsource/roboto";
 import "simplebar-react/dist/simplebar.min.css";
 
-// 假设获取当前用户的函数
+// 假设通过 Redux 获取当前用户邮箱
 const getCurrentUserEmail = () => {
-  // 在这里替换为你的 API 请求或从上下文获取当前用户邮箱的方式
-  return "user@example.com";  // 示例邮箱，替换为动态获取的邮箱
+  // 假设 Redux 中保存了用户的登录信息
+  const user = useSelector((state: any) => state.user); // 根据实际的 state 和 reducer 结构调整
+  return user ? user.email : null;  // 假设 `user.email` 存储了用户的邮箱
 };
 
 // Crisp 集成代码
@@ -41,8 +44,8 @@ window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";  // 替换为�
   s.onload = function() {
     console.log("Crisp script loaded successfully");
 
-    // 在脚本加载完成后动态设置用户的邮箱
-    const email = getCurrentUserEmail();  // 动态获取邮箱
+    // 动态获取当前用户的邮箱
+    const email = getCurrentUserEmail();
     if (email) {
       window.$crisp.push(["set", "user:email", email]);
       console.log(`User email set: ${email}`);
