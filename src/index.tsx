@@ -23,6 +23,23 @@ import "@/analytics";
 import "@fontsource/roboto";
 import "simplebar-react/dist/simplebar.min.css";
 
+// Crisp 集成代码
+window.$crisp = [];
+window.CRISP_WEBSITE_ID = "your_website_id";  // 替换为你的 Crisp 网站 ID
+
+(function() {
+  var d = document;
+  var s = d.createElement("script");
+  s.src = "https://client.crisp.chat/l.js";
+  s.async = 1;
+  s.onload = function() {
+    console.log("Crisp script loaded successfully");
+    // 你可以在这里设置用户邮箱等信息，例如：
+    // window.$crisp.push(["set", "user:email", "test@example.com"]);
+  };
+  d.getElementsByTagName("head")[0].appendChild(s);
+})();
+
 // hash router change to browser router
 if (window.location.hash && window.location.pathname === "/") {
   window.location.href = new URL(window.location.hash, window.location.href).href;
