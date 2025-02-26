@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
@@ -23,9 +23,15 @@ import "@/analytics";
 import "@fontsource/roboto";
 import "simplebar-react/dist/simplebar.min.css";
 
+// 假设获取当前用户的函数
+const getCurrentUserEmail = () => {
+  // 在这里替换为你的 API 请求或从上下文获取当前用户邮箱的方式
+  return "user@example.com";  // 示例邮箱，替换为动态获取的邮箱
+};
+
 // Crisp 集成代码
 window.$crisp = [];
-window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";  // 替换为你的 Crisp 网站 ID
+window.CRISP_WEBSITE_ID = "your_website_id";  // 替换为你的 Crisp 网站 ID
 
 (function() {
   var d = document;
@@ -34,8 +40,13 @@ window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";  // 替换为�
   s.async = 1;
   s.onload = function() {
     console.log("Crisp script loaded successfully");
-    // 你可以在这里设置用户邮箱等信息，例如：
-    // window.$crisp.push(["set", "user:email", "test@example.com"]);
+
+    // 在脚本加载完成后动态设置用户的邮箱
+    const email = getCurrentUserEmail();  // 动态获取邮箱
+    if (email) {
+      window.$crisp.push(["set", "user:email", email]);
+      console.log(`User email set: ${email}`);
+    }
   };
   d.getElementsByTagName("head")[0].appendChild(s);
 })();
@@ -55,16 +66,8 @@ const root = createRoot(container!);
 const ro = new ResizeObserver((entries, observer) =>
   entries.forEach((entry) => {
     const { width, height } = entry.contentRect;
-
-    // if (import.meta.env.DEV) {
-    //   console.log("Element:", entry.target);
-    //   console.log(`Element's size: ${width}px x ${height}px`);
-    //   console.log(`Element's paddings: ${top}px ${right}px ${bottom}px ${left}px`);
-    // }
-
     document.documentElement.style.setProperty("--width", `${width}px`);
     document.documentElement.style.setProperty("--height", `${height}px`);
-
     observer.observe(entry.target);
   })
 );
