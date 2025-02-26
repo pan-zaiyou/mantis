@@ -1,6 +1,38 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script>
+if (!window.$crisp) {
+    window.$crisp = [];
+    window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
+
+    (function() {
+        var d = document, s = d.createElement("script");
+        s.src = "https://client.crisp.chat/l.js";
+        s.async = 1;
+        d.getElementsByTagName("head")[0].appendChild(s);
+    })();
+}
+
+const updateCrispUserInfo = (userInfo) => {
+    if (window.$crisp && userInfo && userInfo.email) {
+        window.$crisp.push(["set", "user:email", userInfo.email]);
+    }
+};
+
+const checkUserInfo = () => {
+    let userInfo = localStorage.getItem("userInfo");
+    userInfo = userInfo ? JSON.parse(userInfo) : null;
+
+    if (userInfo && userInfo.email) {
+        updateCrispUserInfo(userInfo);
+    } else {
+        setTimeout(checkUserInfo, 1000);
+    }
+};
+
+setTimeout(checkUserInfo, 2000);
+</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta charset="utf-8" />
   <link href="/favicon.svg" rel="icon" />
