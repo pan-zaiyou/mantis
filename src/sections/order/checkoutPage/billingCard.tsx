@@ -12,9 +12,12 @@ import {
   Typography,
   Dialog,
   DialogContent,
-  IconButton
+  IconButton,
+  Fade,
+  Zoom
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useSnackbar } from "notistack";
 
 // project imports
@@ -38,11 +41,12 @@ const BillingCard: React.FC = () => {
 
   const [open, setOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [paid, setPaid] = useState(false);
 
   const isMobile = () =>
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  // 🚀 支付状态检测（优化版）
+  // 🚀 支付检测
   useEffect(() => {
     if (!open || !detailData?.trade_no) return;
 
@@ -54,13 +58,14 @@ const BillingCard: React.FC = () => {
         const data = await res.json();
 
         if (data?.data?.status === 1) {
-          setOpen(false);
+          setPaid(true);
 
           enqueueSnackbar("支付成功 🎉", {
             variant: "success"
           });
 
           setTimeout(() => {
+            setOpen(false);
             window.location.href = `/order/${detailData.trade_no}`;
           }, 800);
         }
@@ -69,8 +74,8 @@ const BillingCard: React.FC = () => {
       }
     };
 
-    check(); // 立即检测
-    const timer = setInterval(check, 1000); // 每1秒检测
+    check();
+    const timer = setInterval(check, 1000);
 
     return () => clearInterval(timer);
   }, [open, detailData]);
@@ -136,10 +141,12 @@ const BillingCard: React.FC = () => {
             } else {
               setQrCodeUrl(res);
               setOpen(true);
+              setPaid(false);
             }
           } else if (res?.type === "qrcode") {
             setQrCodeUrl(res.data);
             setOpen(true);
+            setPaid(false);
           } else {
             window.location.href = res?.data || "/";
           }
@@ -171,7 +178,6 @@ const BillingCard: React.FC = () => {
               <Stack
                 direction="row"
                 justifyContent="space-between"
-                alignItems="center"
                 key={index}
               >
                 <Typography>{line.label}</Typography>
@@ -192,102 +198,95 @@ const BillingCard: React.FC = () => {
       </MainCard>
 
       {/* 💎 支付弹窗 */}
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        maxWidth="xs"
-        PaperProps={{
-          style: {
-            width: 360,
-            borderRadius: 16
-          }
-        }}
-      >
+      <Dialog open={open} maxWidth="xs">
         <DialogContent
           style={{
-            padding: "24px 20px",
-            background: "#ffffff",
+            width: 340,
+            padding: 24,
             textAlign: "center",
             position: "relative"
           }}
         >
-          <IconButton
-            onClick={() => setOpen(false)}
-            style={{
-              position: "absolute",
-              right: 10,
-              top: 10
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
+          {!paid && (
+            <IconButton
+              onClick={() => setOpen(false)}
+              style={{ position: "absolute", right: 10, top: 10 }}
+            >
+              <CloseIcon />
+            </IconButton>
+          )}
 
-          <Typography sx={{ fontSize: 13, color: "#999" }}>
-            扫码支付
-          </Typography>
+          {paid ? (
+            <Fade in={paid}>
+              <Stack alignItems="center" spacing={2}>
+                <Zoom in={paid}>
+                  <CheckCircleIcon
+                    style={{ fontSize: 64, color: "#52c41a" }}
+                  />
+                </Zoom>
 
-          <Typography
-            sx={{
-              fontSize: 30,
-              fontWeight: 600,
-              mt: 1,
-              color: "#111"
-            }}
-          >
-            ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
-          </Typography>
+                <Typography sx={{ fontSize: 20, fontWeight: 600 }}>
+                  支付成功
+                </Typography>
 
-          <Typography sx={{ fontSize: 12, color: "#aaa", mb: 3 }}>
-            {detailData?.plan?.name}
-          </Typography>
+                <Typography sx={{ fontSize: 13, color: "#888" }}>
+                  正在为您开通服务...
+                </Typography>
+              </Stack>
+            </Fade>
+          ) : (
+            <>
+              <Typography sx={{ fontSize: 28, fontWeight: 600 }}>
+                ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
+              </Typography>
 
-          <div
-            style={{
-              background: "#fafafa",
-              borderRadius: 12,
-              padding: 14,
-              display: "inline-block",
-              border: "1px solid #f0f0f0"
-            }}
-          >
-            <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
-                qrCodeUrl
-              )}`}
-              style={{
-                width: 180,
-                height: 180
-              }}
-            />
-          </div>
+              <Typography sx={{ fontSize: 12, color: "#aaa", mb: 2 }}>
+                {detailData?.plan?.name}
+              </Typography>
 
-          {/* ✅ 行距优化区域 */}
-          <Stack spacing={0.5} sx={{ mt: 2 }}>
-            <Typography sx={{ fontSize: 13, color: "#333" }}>
-              请使用支付宝扫码完成支付
-            </Typography>
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
+                  qrCodeUrl
+                )}`}
+                style={{ width: 180, height: 180 }}
+              />
 
-            <Typography sx={{ fontSize: 12, color: "#52c41a" }}>
-              支付完成后将自动跳转...
-            </Typography>
+              <Stack spacing={0.5} sx={{ mt: 2 }}>
+                <Typography sx={{ fontSize: 13 }}>
+                  请使用支付宝扫码支付
+                </Typography>
+                <Typography sx={{ fontSize: 12, color: "#52c41a" }}>
+                  支付完成后自动跳转...
+                </Typography>
+                <Typography sx={{ fontSize: 12, color: "#bbb" }}>
+                  关闭后可在订单列表继续支付
+                </Typography>
+              </Stack>
 
-            <Typography sx={{ fontSize: 12, color: "#bbb" }}>
-              关闭后可在订单列表继续支付
-            </Typography>
-          </Stack>
-
-          <Button
-            fullWidth
-            variant="outlined"
-            sx={{
-              mt: 3,
-              height: 40,
-              borderRadius: 2
-            }}
-            onClick={() => setOpen(false)}
-          >
-            取消支付
-          </Button>
+              {/* ✅ 优化后的按钮 */}
+              <Stack alignItems="center">
+                <Button
+                  variant="outlined"
+                  onClick={() => setOpen(false)}
+                  sx={{
+                    mt: 3,
+                    width: 150,
+                    height: 36,
+                    borderRadius: 2,
+                    fontSize: 13,
+                    color: "#666",
+                    borderColor: "#ddd",
+                    "&:hover": {
+                      borderColor: "#bbb",
+                      background: "#fafafa"
+                    }
+                  }}
+                >
+                  取消支付
+                </Button>
+              </Stack>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </>
