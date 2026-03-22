@@ -4,7 +4,15 @@ import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 // material-ui
-import { Button, Divider, Skeleton, Stack, Typography, Dialog, DialogContent } from "@mui/material";
+import {
+  Button,
+  Divider,
+  Skeleton,
+  Stack,
+  Typography,
+  Dialog,
+  DialogContent
+} from "@mui/material";
 import { useSnackbar } from "notistack";
 
 // project imports
@@ -26,9 +34,13 @@ const BillingCard: React.FC = () => {
   const [checkoutOrder] = useCheckoutOrderMutation();
   const { enqueueSnackbar } = useSnackbar();
 
-  // ✅ 新增：二维码状态
+  // ✅ 二维码状态
   const [open, setOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
+
+  // ✅ 判断是否手机
+  const isMobile = () =>
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   const lines = useMemo(
     () => [
@@ -85,9 +97,16 @@ const BillingCard: React.FC = () => {
             method: paymentMethodState
           }).unwrap();
 
-          // ✅ 关键修复逻辑
+          // ✅ 核心修复逻辑
           if (typeof res === "string") {
-            window.location.href = res;
+            if (isMobile()) {
+              // 手机：直接跳转
+              window.location.href = res;
+            } else {
+              // PC：显示二维码
+              setQrCodeUrl(res);
+              setOpen(true);
+            }
           } else if (res?.type === "qrcode") {
             setQrCodeUrl(res.data);
             setOpen(true);
@@ -96,12 +115,16 @@ const BillingCard: React.FC = () => {
           }
         } catch (err) {
           console.error(err);
-          enqueueSnackbar(t("notice::checkout-failed"), { variant: "error" });
+          enqueueSnackbar(t("notice::checkout-failed"), {
+            variant: "error"
+          });
         } finally {
           setSubmitting(false);
         }
       } else {
-        enqueueSnackbar(t("notice::data-not-loaded"), { variant: "error" });
+        enqueueSnackbar(t("notice::data-not-loaded"), {
+          variant: "error"
+        });
       }
     },
     [checkoutOrder, detailData, paymentMethodState]
@@ -121,8 +144,12 @@ const BillingCard: React.FC = () => {
                 alignItems={"center"}
                 key={index}
               >
-                <Typography variant={"body1"}>{line.label}</Typography>
-                <Typography variant={"body1"}>{line.value}</Typography>
+                <Typography variant={"body1"}>
+                  {line.label}
+                </Typography>
+                <Typography variant={"body1"}>
+                  {line.value}
+                </Typography>
               </Stack>
             )
           )}
@@ -138,7 +165,7 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
-      {/* ✅ 二维码弹窗（PC端） */}
+      {/* ✅ 二维码弹窗 */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogContent style={{ textAlign: "center", padding: 30 }}>
           <img
