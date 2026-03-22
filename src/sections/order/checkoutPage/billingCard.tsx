@@ -42,11 +42,11 @@ const BillingCard: React.FC = () => {
   const isMobile = () =>
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  // 自动检测支付状态
+  // 🚀 超快支付检测（核心优化）
   useEffect(() => {
     if (!open || !detailData?.trade_no) return;
 
-    const timer = setInterval(async () => {
+    const check = async () => {
       try {
         const res = await fetch(
           `/api/v1/user/order/fetch?trade_no=${detailData.trade_no}`
@@ -62,12 +62,18 @@ const BillingCard: React.FC = () => {
 
           setTimeout(() => {
             window.location.href = `/order/${detailData.trade_no}`;
-          }, 1000);
+          }, 800);
         }
       } catch (err) {
         console.error("检测支付状态失败", err);
       }
-    }, 3000);
+    };
+
+    // ✅ 立即检测一次（关键）
+    check();
+
+    // ✅ 每1秒检测
+    const timer = setInterval(check, 1000);
 
     return () => clearInterval(timer);
   }, [open, detailData]);
@@ -188,6 +194,7 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
+      {/* 💎 精致支付弹窗 */}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
@@ -207,6 +214,7 @@ const BillingCard: React.FC = () => {
             position: "relative"
           }}
         >
+          {/* 关闭 */}
           <IconButton
             onClick={() => setOpen(false)}
             style={{
@@ -262,7 +270,7 @@ const BillingCard: React.FC = () => {
           </Typography>
 
           <Typography sx={{ mt: 1, fontSize: 12, color: "#52c41a" }}>
-            正在检测支付状态...
+            支付完成后将自动跳转...
           </Typography>
 
           <Typography sx={{ mt: 2, fontSize: 12, color: "#bbb" }}>
