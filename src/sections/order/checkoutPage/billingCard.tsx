@@ -42,7 +42,7 @@ const BillingCard: React.FC = () => {
   const isMobile = () =>
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  // ✅ 自动检测支付状态
+  // 自动检测支付状态
   useEffect(() => {
     if (!open || !detailData?.trade_no) return;
 
@@ -188,44 +188,43 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
-      {/* 💎 高级支付弹窗 */}
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        maxWidth="xs"
+        PaperProps={{
+          style: {
+            width: 360,
+            borderRadius: 16
+          }
+        }}
+      >
         <DialogContent
           style={{
-            padding: "32px 28px",
+            padding: "24px 20px",
             background: "#ffffff",
-            borderRadius: 16,
-            position: "relative",
-            textAlign: "center"
+            textAlign: "center",
+            position: "relative"
           }}
         >
-          {/* 关闭 */}
           <IconButton
             onClick={() => setOpen(false)}
             style={{
               position: "absolute",
-              right: 14,
-              top: 14
+              right: 10,
+              top: 10
             }}
           >
             <CloseIcon />
           </IconButton>
 
-          {/* 标题 */}
-          <Typography
-            variant="body2"
-            sx={{
-              color: "#999",
-              letterSpacing: "1px"
-            }}
-          >
+          <Typography sx={{ fontSize: 13, color: "#999" }}>
             扫码支付
           </Typography>
 
-          {/* 金额 */}
           <Typography
             sx={{
-              fontSize: 34,
+              fontSize: 30,
               fontWeight: 600,
               mt: 1,
               color: "#111"
@@ -234,24 +233,15 @@ const BillingCard: React.FC = () => {
             ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
           </Typography>
 
-          {/* 套餐 */}
-          <Typography
-            sx={{
-              fontSize: 13,
-              color: "#aaa",
-              mt: 1,
-              mb: 3
-            }}
-          >
+          <Typography sx={{ fontSize: 12, color: "#aaa", mb: 3 }}>
             {detailData?.plan?.name}
           </Typography>
 
-          {/* 二维码 */}
           <div
             style={{
               background: "#fafafa",
-              borderRadius: 16,
-              padding: 18,
+              borderRadius: 12,
+              padding: 14,
               display: "inline-block",
               border: "1px solid #f0f0f0"
             }}
@@ -261,19 +251,14 @@ const BillingCard: React.FC = () => {
                 qrCodeUrl
               )}`}
               style={{
-                width: 200,
-                height: 200
+                width: 180,
+                height: 180
               }}
             />
           </div>
 
-          {/* 提示 */}
-          <Typography sx={{ mt: 3, fontSize: 14, color: "#333" }}>
+          <Typography sx={{ mt: 2, fontSize: 13, color: "#333" }}>
             请使用支付宝扫码完成支付
-          </Typography>
-
-          <Typography sx={{ mt: 1, fontSize: 12, color: "#999" }}>
-            支付完成后自动开通服务
           </Typography>
 
           <Typography sx={{ mt: 1, fontSize: 12, color: "#52c41a" }}>
@@ -284,15 +269,13 @@ const BillingCard: React.FC = () => {
             关闭后可在订单列表继续支付
           </Typography>
 
-          {/* 按钮 */}
           <Button
             fullWidth
             variant="outlined"
             sx={{
               mt: 3,
-              height: 42,
-              borderRadius: 3,
-              textTransform: "none"
+              height: 40,
+              borderRadius: 2
             }}
             onClick={() => setOpen(false)}
           >
