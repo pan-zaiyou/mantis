@@ -188,13 +188,13 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
-      {/* 💎 极简高级支付弹窗 */}
+      {/* 💎 高级支付弹窗 */}
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
         <DialogContent
           style={{
-            padding: "28px 24px",
+            padding: "32px 28px",
             background: "#ffffff",
-            borderRadius: 12,
+            borderRadius: 16,
             position: "relative",
             textAlign: "center"
           }}
@@ -204,38 +204,56 @@ const BillingCard: React.FC = () => {
             onClick={() => setOpen(false)}
             style={{
               position: "absolute",
-              right: 12,
-              top: 12
+              right: 14,
+              top: 14
             }}
           >
             <CloseIcon />
           </IconButton>
 
           {/* 标题 */}
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: "#999",
+              letterSpacing: "1px"
+            }}
+          >
             扫码支付
           </Typography>
 
           {/* 金额 */}
           <Typography
-            variant="h4"
-            sx={{ fontWeight: "bold", mb: 1, color: "#111" }}
+            sx={{
+              fontSize: 34,
+              fontWeight: 600,
+              mt: 1,
+              color: "#111"
+            }}
           >
             ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
           </Typography>
 
           {/* 套餐 */}
-          <Typography variant="body2" sx={{ color: "#888", mb: 3 }}>
+          <Typography
+            sx={{
+              fontSize: 13,
+              color: "#aaa",
+              mt: 1,
+              mb: 3
+            }}
+          >
             {detailData?.plan?.name}
           </Typography>
 
           {/* 二维码 */}
           <div
             style={{
-              padding: 16,
-              borderRadius: 12,
-              background: "#f7f7f7",
-              display: "inline-block"
+              background: "#fafafa",
+              borderRadius: 16,
+              padding: 18,
+              display: "inline-block",
+              border: "1px solid #f0f0f0"
             }}
           >
             <img
@@ -250,13 +268,20 @@ const BillingCard: React.FC = () => {
           </div>
 
           {/* 提示 */}
-          <Typography sx={{ mt: 2, fontSize: 14, color: "#555" }}>
+          <Typography sx={{ mt: 3, fontSize: 14, color: "#333" }}>
             请使用支付宝扫码完成支付
           </Typography>
 
-          {/* 状态 */}
           <Typography sx={{ mt: 1, fontSize: 12, color: "#999" }}>
-            支付完成后将自动跳转
+            支付完成后自动开通服务
+          </Typography>
+
+          <Typography sx={{ mt: 1, fontSize: 12, color: "#52c41a" }}>
+            正在检测支付状态...
+          </Typography>
+
+          <Typography sx={{ mt: 2, fontSize: 12, color: "#bbb" }}>
+            关闭后可在订单列表继续支付
           </Typography>
 
           {/* 按钮 */}
@@ -265,12 +290,13 @@ const BillingCard: React.FC = () => {
             variant="outlined"
             sx={{
               mt: 3,
-              borderRadius: 2,
-              height: 42
+              height: 42,
+              borderRadius: 3,
+              textTransform: "none"
             }}
             onClick={() => setOpen(false)}
           >
-            取消
+            取消支付
           </Button>
         </DialogContent>
       </Dialog>
