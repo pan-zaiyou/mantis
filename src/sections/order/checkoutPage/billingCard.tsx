@@ -42,7 +42,7 @@ const BillingCard: React.FC = () => {
   const isMobile = () =>
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  // 🚀 超快支付检测（核心优化）
+  // 🚀 支付状态检测（优化版）
   useEffect(() => {
     if (!open || !detailData?.trade_no) return;
 
@@ -69,11 +69,8 @@ const BillingCard: React.FC = () => {
       }
     };
 
-    // ✅ 立即检测一次（关键）
-    check();
-
-    // ✅ 每1秒检测
-    const timer = setInterval(check, 1000);
+    check(); // 立即检测
+    const timer = setInterval(check, 1000); // 每1秒检测
 
     return () => clearInterval(timer);
   }, [open, detailData]);
@@ -194,7 +191,7 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
-      {/* 💎 精致支付弹窗 */}
+      {/* 💎 支付弹窗 */}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
@@ -214,7 +211,6 @@ const BillingCard: React.FC = () => {
             position: "relative"
           }}
         >
-          {/* 关闭 */}
           <IconButton
             onClick={() => setOpen(false)}
             style={{
@@ -265,17 +261,20 @@ const BillingCard: React.FC = () => {
             />
           </div>
 
-          <Typography sx={{ mt: 2, fontSize: 13, color: "#333" }}>
-            请使用支付宝扫码完成支付
-          </Typography>
+          {/* ✅ 行距优化区域 */}
+          <Stack spacing={0.5} sx={{ mt: 2 }}>
+            <Typography sx={{ fontSize: 13, color: "#333" }}>
+              请使用支付宝扫码完成支付
+            </Typography>
 
-          <Typography sx={{ mt: 1, fontSize: 12, color: "#52c41a" }}>
-            支付完成后将自动跳转...
-          </Typography>
+            <Typography sx={{ fontSize: 12, color: "#52c41a" }}>
+              支付完成后将自动跳转...
+            </Typography>
 
-          <Typography sx={{ mt: 2, fontSize: 12, color: "#bbb" }}>
-            关闭后可在订单列表继续支付
-          </Typography>
+            <Typography sx={{ fontSize: 12, color: "#bbb" }}>
+              关闭后可在订单列表继续支付
+            </Typography>
+          </Stack>
 
           <Button
             fullWidth
