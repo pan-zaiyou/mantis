@@ -11,8 +11,10 @@ import {
   Stack,
   Typography,
   Dialog,
-  DialogContent
+  DialogContent,
+  IconButton
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import { useSnackbar } from "notistack";
 
 // project imports
@@ -34,11 +36,9 @@ const BillingCard: React.FC = () => {
   const [checkoutOrder] = useCheckoutOrderMutation();
   const { enqueueSnackbar } = useSnackbar();
 
-  // ✅ 二维码状态
   const [open, setOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
 
-  // ✅ 判断是否手机
   const isMobile = () =>
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
@@ -97,13 +97,10 @@ const BillingCard: React.FC = () => {
             method: paymentMethodState
           }).unwrap();
 
-          // ✅ 核心修复逻辑
           if (typeof res === "string") {
             if (isMobile()) {
-              // 手机：直接跳转
               window.location.href = res;
             } else {
-              // PC：显示二维码
               setQrCodeUrl(res);
               setOpen(true);
             }
@@ -139,24 +136,20 @@ const BillingCard: React.FC = () => {
               <Skeleton key={index} variant="text" width="100%" height={40} />
             ) : (
               <Stack
-                direction={"row"}
-                justifyContent={"space-between"}
-                alignItems={"center"}
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
                 key={index}
               >
-                <Typography variant={"body1"}>
-                  {line.label}
-                </Typography>
-                <Typography variant={"body1"}>
-                  {line.value}
-                </Typography>
+                <Typography>{line.label}</Typography>
+                <Typography>{line.value}</Typography>
               </Stack>
             )
           )}
 
           <Button
             fullWidth
-            variant={"contained"}
+            variant="contained"
             disabled={isLoading || isSubmitting}
             onClick={handleClick}
           >
@@ -165,18 +158,86 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
-      {/* ✅ 二维码弹窗 */}
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogContent style={{ textAlign: "center", padding: 30 }}>
-          <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
-              qrCodeUrl
-            )}`}
-            alt="二维码"
-          />
-          <Typography variant="body2" sx={{ mt: 2 }}>
-            请使用支付宝扫码支付
+      {/* 🎨 UI升级版弹窗 */}
+      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
+        <DialogContent
+          style={{
+            textAlign: "center",
+            padding: "30px 20px",
+            position: "relative"
+          }}
+        >
+          {/* ❌ 关闭按钮 */}
+          <IconButton
+            onClick={() => setOpen(false)}
+            style={{
+              position: "absolute",
+              right: 10,
+              top: 10
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+
+          {/* 标题 */}
+          <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+            支付宝扫码支付
           </Typography>
+
+          {/* 金额 */}
+          <Typography
+            variant="h4"
+            sx={{ mb: 2, fontWeight: "bold", color: "#1677ff" }}
+          >
+            ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
+          </Typography>
+
+          {/* 套餐 */}
+          <Typography variant="body2" sx={{ mb: 2, color: "#888" }}>
+            {detailData?.plan?.name}
+          </Typography>
+
+          {/* 二维码卡片 */}
+          <div
+            style={{
+              padding: 12,
+              borderRadius: 12,
+              background: "#fff",
+              display: "inline-block",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.08)"
+            }}
+          >
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
+                qrCodeUrl
+              )}`}
+              style={{
+                width: 220,
+                height: 220,
+                display: "block"
+              }}
+            />
+          </div>
+
+          {/* 提示 */}
+          <Typography
+            variant="body2"
+            sx={{ mt: 2, color: "#666", lineHeight: 1.6 }}
+          >
+            请使用支付宝扫码支付
+            <br />
+            支付完成后自动开通服务
+          </Typography>
+
+          {/* 取消按钮 */}
+          <Button
+            fullWidth
+            variant="outlined"
+            sx={{ mt: 3 }}
+            onClick={() => setOpen(false)}
+          >
+            取消支付
+          </Button>
         </DialogContent>
       </Dialog>
     </>
