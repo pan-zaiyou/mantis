@@ -188,111 +188,90 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
-      {/* 🎨 高级UI支付弹窗 */}
+      {/* 💎 极简高级支付弹窗 */}
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
         <DialogContent
           style={{
-            padding: 0,
-            background: "#f5f7fb",
-            overflow: "hidden",
+            padding: "28px 24px",
+            background: "#ffffff",
             borderRadius: 12,
-            position: "relative"
+            position: "relative",
+            textAlign: "center"
           }}
         >
-          {/* ❌ 关闭 */}
+          {/* 关闭 */}
           <IconButton
             onClick={() => setOpen(false)}
             style={{
               position: "absolute",
               right: 12,
-              top: 12,
-              background: "#fff",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              zIndex: 10
+              top: 12
             }}
           >
             <CloseIcon />
           </IconButton>
 
-          {/* 🔵 顶部渐变 */}
+          {/* 标题 */}
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+            扫码支付
+          </Typography>
+
+          {/* 金额 */}
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: "bold", mb: 1, color: "#111" }}
+          >
+            ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
+          </Typography>
+
+          {/* 套餐 */}
+          <Typography variant="body2" sx={{ color: "#888", mb: 3 }}>
+            {detailData?.plan?.name}
+          </Typography>
+
+          {/* 二维码 */}
           <div
             style={{
-              background: "linear-gradient(135deg, #1677ff, #4096ff)",
-              padding: "24px 20px",
-              textAlign: "center",
-              color: "#fff"
+              padding: 16,
+              borderRadius: 12,
+              background: "#f7f7f7",
+              display: "inline-block"
             }}
           >
-            <Typography variant="body2" sx={{ opacity: 0.9 }}>
-              支付金额
-            </Typography>
-
-            <Typography
-              variant="h3"
-              sx={{
-                fontWeight: "bold",
-                mt: 1
-              }}
-            >
-              ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
-            </Typography>
-
-            <Typography sx={{ mt: 1, opacity: 0.85 }}>
-              {detailData?.plan?.name}
-            </Typography>
-          </div>
-
-          {/* ⚪ 内容 */}
-          <div style={{ padding: "24px 20px", textAlign: "center" }}>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-              支付宝扫码支付
-            </Typography>
-
-            <div
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
+                qrCodeUrl
+              )}`}
               style={{
-                background: "#fff",
-                borderRadius: 16,
-                padding: 20,
-                display: "inline-block",
-                boxShadow: "0 12px 40px rgba(0,0,0,0.08)"
+                width: 200,
+                height: 200
               }}
-            >
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
-                  qrCodeUrl
-                )}`}
-                style={{
-                  width: 220,
-                  height: 220
-                }}
-              />
-            </div>
-
-            <Typography sx={{ mt: 2, color: "#555" }}>
-              请使用支付宝扫码支付
-            </Typography>
-
-            <Typography sx={{ mt: 1, fontSize: 12, color: "#52c41a" }}>
-              正在检测支付状态...
-            </Typography>
-
-            <Typography sx={{ mt: 2, fontSize: 12, color: "#999" }}>
-              关闭后可在订单列表继续支付
-            </Typography>
-
-            <Button
-              fullWidth
-              variant="contained"
-              sx={{
-                mt: 3,
-                borderRadius: 3,
-                height: 44
-              }}
-              onClick={() => setOpen(false)}
-            >
-              取消支付
-            </Button>
+            />
           </div>
+
+          {/* 提示 */}
+          <Typography sx={{ mt: 2, fontSize: 14, color: "#555" }}>
+            请使用支付宝扫码完成支付
+          </Typography>
+
+          {/* 状态 */}
+          <Typography sx={{ mt: 1, fontSize: 12, color: "#999" }}>
+            支付完成后将自动跳转
+          </Typography>
+
+          {/* 按钮 */}
+          <Button
+            fullWidth
+            variant="outlined"
+            sx={{
+              mt: 3,
+              borderRadius: 2,
+              height: 42
+            }}
+            onClick={() => setOpen(false)}
+          >
+            取消
+          </Button>
         </DialogContent>
       </Dialog>
     </>
