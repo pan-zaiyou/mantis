@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 
 // third-party
 import { useTranslation } from "react-i18next";
@@ -41,6 +41,37 @@ const BillingCard: React.FC = () => {
 
   const isMobile = () =>
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  // 🧠 自动检测支付状态（核心）
+  useEffect(() => {
+    if (!open || !detailData?.trade_no) return;
+
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch(
+          `/api/v1/user/order/fetch?trade_no=${detailData.trade_no}`
+        );
+        const data = await res.json();
+
+        if (data?.data?.status === 1) {
+          setOpen(false);
+
+          enqueueSnackbar("支付成功 🎉", {
+            variant: "success"
+          });
+
+          // 跳转成功页
+          setTimeout(() => {
+            window.location.href = `/order/${detailData.trade_no}`;
+          }, 1000);
+        }
+      } catch (err) {
+        console.error("检测支付状态失败", err);
+      }
+    }, 3000);
+
+    return () => clearInterval(timer);
+  }, [open, detailData]);
 
   const lines = useMemo(
     () => [
@@ -158,33 +189,28 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
-      {/* 🎨 UI升级版弹窗 */}
+      {/* 🎨 支付弹窗 */}
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="xs" fullWidth>
         <DialogContent
           style={{
             textAlign: "center",
             padding: "30px 20px",
-            position: "relative"
+            position: "relative",
+            background: "#fafafa"
           }}
         >
-          {/* ❌ 关闭按钮 */}
+          {/* ❌ 关闭 */}
           <IconButton
             onClick={() => setOpen(false)}
-            style={{
-              position: "absolute",
-              right: 10,
-              top: 10
-            }}
+            style={{ position: "absolute", right: 10, top: 10 }}
           >
             <CloseIcon />
           </IconButton>
 
-          {/* 标题 */}
           <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
             支付宝扫码支付
           </Typography>
 
-          {/* 金额 */}
           <Typography
             variant="h4"
             sx={{ mb: 2, fontWeight: "bold", color: "#1677ff" }}
@@ -192,19 +218,18 @@ const BillingCard: React.FC = () => {
             ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
           </Typography>
 
-          {/* 套餐 */}
           <Typography variant="body2" sx={{ mb: 2, color: "#888" }}>
             {detailData?.plan?.name}
           </Typography>
 
-          {/* 二维码卡片 */}
+          {/* 二维码 */}
           <div
             style={{
               padding: 12,
               borderRadius: 12,
               background: "#fff",
               display: "inline-block",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.08)"
+              boxShadow: "0 8px 30px rgba(0,0,0,0.12)"
             }}
           >
             <img
@@ -213,27 +238,34 @@ const BillingCard: React.FC = () => {
               )}`}
               style={{
                 width: 220,
-                height: 220,
-                display: "block"
+                height: 220
               }}
             />
           </div>
 
-          {/* 提示 */}
-          <Typography
-            variant="body2"
-            sx={{ mt: 2, color: "#666", lineHeight: 1.6 }}
-          >
+          <Typography sx={{ mt: 2, color: "#666" }}>
             请使用支付宝扫码支付
-            <br />
-            支付完成后自动开通服务
           </Typography>
 
-          {/* 取消按钮 */}
+          {/* 🔥 状态提示 */}
+          <Typography
+            variant="caption"
+            sx={{ display: "block", mt: 1, color: "#52c41a" }}
+          >
+            正在检测支付状态...
+          </Typography>
+
+          <Typography
+            variant="caption"
+            sx={{ display: "block", mt: 1, color: "#999" }}
+          >
+            关闭后可在订单列表继续支付
+          </Typography>
+
           <Button
             fullWidth
             variant="outlined"
-            sx={{ mt: 3 }}
+            sx={{ mt: 3, borderRadius: 2, height: 42 }}
             onClick={() => setOpen(false)}
           >
             取消支付
