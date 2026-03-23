@@ -200,7 +200,7 @@ const BillingCard: React.FC = () => {
         PaperProps={{
           style: {
             width: 340,
-            borderRadius: 16,
+            borderRadius: 4, // 🌟 边角改小
             backdropFilter: "blur(10px)",
             background: "rgba(255, 255, 255, 0.95)"
           }
@@ -238,7 +238,7 @@ const BillingCard: React.FC = () => {
             <div
               style={{
                 background: "#fafafa",
-                borderRadius: 16,
+                borderRadius: 8, // 🌟 二维码容器圆角改小
                 padding: 14,
                 display: "inline-block",
                 border: "1px solid #f0f0f0",
@@ -272,7 +272,7 @@ const BillingCard: React.FC = () => {
             </Typography>
           </Stack>
 
-          {/* ✅ 按钮 */}
+          {/* ✅ 取消支付按钮 */}
           <Button
             variant="contained"
             color="error"
@@ -281,7 +281,7 @@ const BillingCard: React.FC = () => {
               height: 38,
               minWidth: 140,
               paddingX: 3,
-              borderRadius: 2,
+              borderRadius: 1, // 🌟 按钮圆角改小
               fontWeight: 500,
               "&:hover": {
                 backgroundColor: "#d32f2f"
