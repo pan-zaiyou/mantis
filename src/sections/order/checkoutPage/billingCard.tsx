@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 
 // material-ui
 import {
@@ -133,7 +133,7 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
-      {/* 🍎 Apple风弹窗 */}
+      {/* 🍎 Glassmorphism 弹窗 */}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
@@ -151,22 +151,42 @@ const BillingCard: React.FC = () => {
               width: 300,
               borderRadius: "22px",
               textAlign: "center",
+              position: "relative",
+              p: 3,
+              overflow: "hidden",
 
+              // 🌟 玻璃底
               background:
                 theme.palette.mode === "dark"
-                  ? "rgba(30,30,30,0.65)"
-                  : "rgba(255,255,255,0.65)",
+                  ? "rgba(30,30,30,0.6)"
+                  : "rgba(255,255,255,0.7)",
 
-              backdropFilter: "blur(30px)",
-              WebkitBackdropFilter: "blur(30px)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
 
+              // 🌟 边框
+              border:
+                theme.palette.mode === "dark"
+                  ? "1px solid rgba(255,255,255,0.08)"
+                  : "1px solid rgba(255,255,255,0.3)",
+
+              // 🌟 阴影
               boxShadow:
                 theme.palette.mode === "dark"
-                  ? "0 10px 40px rgba(0,0,0,0.6)"
-                  : "0 10px 30px rgba(0,0,0,0.1)",
+                  ? "0 8px 32px rgba(0,0,0,0.6)"
+                  : "0 8px 32px rgba(31,38,135,0.1)",
 
-              position: "relative",
-              p: 3
+              // 🌟 高光层（苹果感关键）
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                inset: 0,
+                borderRadius: "22px",
+                background:
+                  "linear-gradient(120deg, rgba(255,255,255,0.35), rgba(255,255,255,0.05))",
+                opacity: theme.palette.mode === "dark" ? 0.06 : 0.4,
+                pointerEvents: "none"
+              }
             })}
           >
             {!paid && (
@@ -192,12 +212,11 @@ const BillingCard: React.FC = () => {
               </Stack>
             ) : (
               <>
-                {/* 💰 金额（更大更粗） */}
+                {/* 💰 大金额 */}
                 <Typography
                   sx={{
                     fontSize: 34,
-                    fontWeight: 700,
-                    letterSpacing: "-0.5px"
+                    fontWeight: 700
                   }}
                 >
                   ¥{price}
@@ -222,27 +241,17 @@ const BillingCard: React.FC = () => {
 
                 {/* 二维码 */}
                 <Box
-                  sx={(theme) => ({
+                  sx={{
                     mt: 2,
                     width: 180,
                     height: 180,
                     mx: "auto",
                     borderRadius: 2,
-
-                    background:
-                      theme.palette.mode === "dark"
-                        ? "linear-gradient(145deg, #2a2a2a, #1f1f1f)"
-                        : "linear-gradient(145deg, #ffffff, #f3f3f3)",
-
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-
-                    boxShadow:
-                      theme.palette.mode === "dark"
-                        ? "0 8px 25px rgba(0,0,0,0.5)"
-                        : "0 8px 20px rgba(0,0,0,0.08)"
-                  })}
+                    background: "rgba(255,255,255,0.9)"
+                  }}
                 >
                   {loadingQr ? (
                     <Typography sx={{ fontSize: 12 }}>
@@ -263,14 +272,13 @@ const BillingCard: React.FC = () => {
                   sx={{
                     mt: 1.5,
                     fontSize: 13,
-                    lineHeight: 1.4,
                     color: "text.secondary"
                   }}
                 >
                   请使用支付宝扫码支付
                 </Typography>
 
-                {/* 🍎 胶囊背景取消按钮 */}
+                {/* 🍎 胶囊取消按钮 */}
                 <Button
                   onClick={() => setOpen(false)}
                   fullWidth
@@ -283,7 +291,6 @@ const BillingCard: React.FC = () => {
                       theme.palette.mode === "dark"
                         ? "rgba(255,255,255,0.08)"
                         : "rgba(0,0,0,0.05)",
-                    color: "text.primary",
                     backdropFilter: "blur(10px)"
                   })}
                 >
