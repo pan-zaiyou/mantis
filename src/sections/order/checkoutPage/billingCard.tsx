@@ -43,10 +43,13 @@ const BillingCard: React.FC = () => {
   const [paid, setPaid] = useState(false);
   const [loadingQr, setLoadingQr] = useState(false);
 
+  // ⏳ 倒计时（10分钟）
+  const [countdown, setCountdown] = useState(600);
+
   const isMobile = () =>
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  // 🚀 支付状态检测（更快）
+  // 🚀 支付状态检测
   useEffect(() => {
     if (!open || !detailData?.trade_no) return;
 
@@ -74,13 +77,39 @@ const BillingCard: React.FC = () => {
     return () => clearInterval(timer);
   }, [open, detailData]);
 
+  // ⏳ 倒计时逻辑
+  useEffect(() => {
+    if (!open) return;
+
+    setCountdown(600);
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setOpen(false);
+          enqueueSnackbar("订单已过期", { variant: "warning" });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [open]);
+
+  const formatTime = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
   const handleClick = useCallback(async () => {
     if (!detailData || !paymentMethodState) return;
 
     try {
       setSubmitting(true);
 
-      // ⚡ 秒开弹窗
       setOpen(true);
       setLoadingQr(true);
       setPaid(false);
@@ -134,7 +163,7 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
-      {/* 🍎 Apple风 + 暗黑模式 + 3D */}
+      {/* 🍎 Apple风 + 暗黑 + 3D */}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
@@ -152,38 +181,23 @@ const BillingCard: React.FC = () => {
               width: 300,
               borderRadius: "22px",
               textAlign: "center",
-
-              // 🌙 自动暗黑
               background:
                 theme.palette.mode === "dark"
                   ? "rgba(30,30,30,0.65)"
                   : "rgba(255,255,255,0.65)",
-
               backdropFilter: "blur(30px)",
-              WebkitBackdropFilter: "blur(30px)",
-
               boxShadow:
                 theme.palette.mode === "dark"
                   ? "0 10px 40px rgba(0,0,0,0.6)"
-                  : `
-                    0 10px 30px rgba(0,0,0,0.1),
-                    0 30px 60px rgba(0,0,0,0.15)
-                  `,
-
-              position: "relative",
-              p: 3
+                  : "0 10px 30px rgba(0,0,0,0.1)",
+              p: 3,
+              position: "relative"
             })}
           >
-            {/* 关闭按钮 */}
             {!paid && (
               <IconButton
                 onClick={() => setOpen(false)}
-                sx={{
-                  position: "absolute",
-                  right: 10,
-                  top: 10,
-                  opacity: 0.6
-                }}
+                sx={{ position: "absolute", right: 10, top: 10 }}
               >
                 <CloseIcon fontSize="small" />
               </IconButton>
@@ -191,74 +205,40 @@ const BillingCard: React.FC = () => {
 
             {paid ? (
               <Stack alignItems="center" spacing={2}>
-                <CheckCircleIcon
-                  sx={{ fontSize: 60, color: "#34c759" }}
-                />
-                <Typography sx={{ fontWeight: 600 }}>
-                  支付成功
-                </Typography>
+                <CheckCircleIcon sx={{ fontSize: 60, color: "#34c759" }} />
+                <Typography>支付成功</Typography>
               </Stack>
             ) : (
               <>
-                {/* 金额 */}
                 <Typography sx={{ fontSize: 26, fontWeight: 600 }}>
                   ¥{price}
                 </Typography>
 
-                {/* 套餐 */}
                 <Typography sx={{ fontSize: 12, color: "text.secondary", mb: 2 }}>
                   {detailData?.plan?.name}
                 </Typography>
 
-                {/* 🍎 3D二维码卡片（暗黑适配） */}
                 <Box
                   sx={(theme) => ({
                     width: 180,
                     height: 180,
                     mx: "auto",
                     borderRadius: 2,
-
                     background:
                       theme.palette.mode === "dark"
                         ? "linear-gradient(145deg, #2a2a2a, #1f1f1f)"
                         : "linear-gradient(145deg, #ffffff, #f3f3f3)",
-
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-
                     boxShadow:
                       theme.palette.mode === "dark"
                         ? "0 8px 25px rgba(0,0,0,0.5)"
-                        : `
-                          0 8px 20px rgba(0,0,0,0.08),
-                          inset 0 1px 0 rgba(255,255,255,0.6)
-                        `,
-
-                    transition: "all 0.3s ease"
+                        : "0 8px 20px rgba(0,0,0,0.08)"
                   })}
-                  onMouseMove={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-
-                    const rotateX = -(y - rect.height / 2) / 20;
-                    const rotateY = (x - rect.width / 2) / 20;
-
-                    e.currentTarget.style.transform = `
-                      perspective(800px)
-                      rotateX(${rotateX}deg)
-                      rotateY(${rotateY}deg)
-                    `;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "none";
-                  }}
                 >
                   {loadingQr ? (
-                    <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-                      加载中...
-                    </Typography>
+                    <Typography sx={{ fontSize: 12 }}>加载中...</Typography>
                   ) : (
                     <img
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
@@ -269,27 +249,29 @@ const BillingCard: React.FC = () => {
                   )}
                 </Box>
 
-                {/* 提示（优化行距） */}
-                <Typography
-                  sx={{
-                    mt: 1.5,
-                    fontSize: 13,
-                    lineHeight: 1.4,
-                    color: "text.secondary"
-                  }}
-                >
+                <Typography sx={{ mt: 1.5, fontSize: 13 }}>
                   请使用支付宝扫码
                 </Typography>
 
-                {/* 取消按钮（优化尺寸） */}
+                {/* 🧾 订单号 */}
+                <Typography sx={{ mt: 1.5, fontSize: 12, color: "text.secondary" }}>
+                  订单号：{detailData?.trade_no}
+                </Typography>
+
+                {/* ⏳ 倒计时 */}
+                <Typography
+                  sx={{
+                    mt: 0.5,
+                    fontSize: 12,
+                    color: countdown < 60 ? "#ff4d4f" : "text.secondary"
+                  }}
+                >
+                  剩余时间：{formatTime(countdown)}
+                </Typography>
+
                 <Button
                   onClick={() => setOpen(false)}
-                  sx={{
-                    mt: 2,
-                    fontSize: 12,
-                    minWidth: 80,
-                    color: "text.secondary"
-                  }}
+                  sx={{ mt: 2, fontSize: 12 }}
                 >
                   取消
                 </Button>
