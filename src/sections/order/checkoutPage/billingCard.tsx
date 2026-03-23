@@ -43,7 +43,7 @@ const BillingCard: React.FC = () => {
   const isMobile = () =>
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  // 🚀 支付状态检测
+  // 支付状态检测
   useEffect(() => {
     if (!open || !detailData?.trade_no) return;
 
@@ -192,7 +192,7 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
-      {/* 💎 支付弹窗 */}
+      {/* 支付弹窗 */}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
@@ -213,7 +213,20 @@ const BillingCard: React.FC = () => {
             position: "relative"
           }}
         >
-          {/* 关闭 */}
+          {/* 顶部 Logo */}
+          <div style={{ textAlign: "center", marginBottom: 12 }}>
+            <img
+              src="/path/to/top-logo.png" // 替换为你的实际 logo
+              style={{
+                width: 80,
+                height: 24,
+                objectFit: "contain"
+              }}
+              alt="Logo"
+            />
+          </div>
+
+          {/* 关闭按钮 */}
           <IconButton
             onClick={() => setOpen(false)}
             style={{ position: "absolute", right: 10, top: 10 }}
@@ -221,19 +234,22 @@ const BillingCard: React.FC = () => {
             <CloseIcon />
           </IconButton>
 
+          {/* 扫码支付标题 */}
           <Typography sx={{ fontSize: 13, color: "#999", mb: 1 }}>
             扫码支付
           </Typography>
 
-          <Typography sx={{ fontSize: 28, fontWeight: 600, color: "#111" }}>
+          {/* 金额（加粗） */}
+          <Typography sx={{ fontSize: 28, fontWeight: "bold", color: "#111" }}>
             ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
           </Typography>
 
+          {/* 套餐名称 */}
           <Typography sx={{ fontSize: 12, color: "#aaa", mb: 2.5 }}>
             {detailData?.plan?.name}
           </Typography>
 
-          {/* ✅ 二维码（比例优化） */}
+          {/* 二维码 */}
           <div
             style={{
               background: "#fafafa",
@@ -256,7 +272,7 @@ const BillingCard: React.FC = () => {
             />
           </div>
 
-          {/* 提示 */}
+          {/* 提示文字 */}
           <Stack spacing={0.75} sx={{ mt: 2 }}>
             <Typography sx={{ fontSize: 13, color: "#333" }}>
               请使用支付宝扫码完成支付
@@ -269,7 +285,7 @@ const BillingCard: React.FC = () => {
             </Typography>
           </Stack>
 
-          {/* ✅ 按钮（最终版） */}
+          {/* 取消支付按钮 */}
           <Button
             variant="contained"
             color="error"
