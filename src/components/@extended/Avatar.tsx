@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 
 // material-ui
 import { styled, useTheme, Theme } from "@mui/material/styles";
@@ -124,6 +124,15 @@ export interface Props extends AvatarProps {
   size?: SizeProps;
 }
 
+// 🔥 生成稳定随机数（同一个用户永远一样）
+function hashString(str: string) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash);
+}
+
 export default function Avatar({
   variant = "circular",
   children,
@@ -133,9 +142,37 @@ export default function Avatar({
   ...others
 }: Props) {
   const theme = useTheme();
+  const { src, alt, ...rest } = others as any;
+
+  // 👇 用 alt 或 fallback 作为唯一标识
+  const seed = alt || "default";
+
+  // 🔥 外网头像（科技风）
+  const dicebearUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}`;
+
+  // 🔥 本地头像（1~5稳定分配）
+  const index = (hashString(seed) % 5) + 1;
+  const localAvatar = `/assets/images/users/avatar-${index}.png`;
+
+  // 👇 控制是否使用本地头像
+  const [imgSrc, setImgSrc] = useState(src || dicebearUrl);
 
   return (
-    <AvatarStyle variant={variant} theme={theme} color={color} type={type} size={size} {...others}>
+    <AvatarStyle
+      variant={variant}
+      theme={theme}
+      color={color}
+      type={type}
+      size={size}
+      src={imgSrc}
+      onError={() => {
+        // 👇 外网失败 → 自动切换本地
+        if (imgSrc !== localAvatar) {
+          setImgSrc(localAvatar);
+        }
+      }}
+      {...rest}
+    >
       {children}
     </AvatarStyle>
   );
