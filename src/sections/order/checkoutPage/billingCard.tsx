@@ -1,4 +1,8 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
+
+// third-party
+import { useTranslation } from "react-i18next";
+import QRCode from "qrcode.react";
 
 // material-ui
 import {
@@ -11,26 +15,25 @@ import {
   DialogContent,
   IconButton,
   Fade,
-  Backdrop,
-  Box
+  Zoom
 } from "@mui/material";
 
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-
 import { useSnackbar } from "notistack";
-import { useTranslation } from "react-i18next";
 
-// project
+// project imports
 import MainCard from "@/components/MainCard";
 import { useCheckoutOrderMutation } from "@/store/services/api";
 import { useCheckoutContext } from "@/sections/order/checkoutPage/context";
+import ReactGA from "react-ga4";
 
 const BillingCard: React.FC = () => {
   const { t } = useTranslation();
   const {
     detail: { data: detailData, isLoading },
     paymentMethodState,
+    paymentMethodIndex,
     setSubmitting,
     isSubmitting
   } = useCheckoutContext();
@@ -41,12 +44,11 @@ const BillingCard: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [paid, setPaid] = useState(false);
-  const [loadingQr, setLoadingQr] = useState(false);
 
   const isMobile = () =>
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  // 🚀 支付状态检测
+  // 🚀 支付检测
   useEffect(() => {
     if (!open || !detailData?.trade_no) return;
 
@@ -60,10 +62,14 @@ const BillingCard: React.FC = () => {
         if (data?.data?.status === 1) {
           setPaid(true);
 
+          enqueueSnackbar("支付成功 🎉", {
+            variant: "success"
+          });
+
           setTimeout(() => {
             setOpen(false);
             window.location.href = `/order/${detailData.trade_no}`;
-          }, 700);
+          }, 800);
         }
       } catch {}
     };
@@ -74,232 +80,187 @@ const BillingCard: React.FC = () => {
     return () => clearInterval(timer);
   }, [open, detailData]);
 
-  const handleClick = useCallback(async () => {
-    if (!detailData || !paymentMethodState) return;
-
-    try {
-      setSubmitting(true);
-
-      setOpen(true);
-      setLoadingQr(true);
-      setPaid(false);
-
-      const res = await checkoutOrder({
-        trade_no: detailData.trade_no,
-        method: paymentMethodState
-      }).unwrap();
-
-      if (typeof res === "string") {
-        if (isMobile()) {
-          window.location.href = res;
-        } else {
-          setQrCodeUrl(res);
-        }
-      } else if (res?.type === "qrcode") {
-        setQrCodeUrl(res.data);
+  const lines = useMemo(
+    () => [
+      {
+        label:
+          detailData?.plan.name === "deposit"
+            ? t("order.checkout.product-info-card.deposit")
+            : detailData?.plan.name,
+        value: t("order.checkout.billing-card.price", {
+          value: Number((detailData?.total_amount ?? 0) / 100).toFixed(2)
+        })
+      },
+      ...(detailData?.discount_amount || detailData?.surplus_amount
+        ? [
+            {
+              label: t("order.checkout.billing-card.deduction"),
+              value: t("order.checkout.billing-card.price", {
+                value: (
+                  ((detailData?.discount_amount ?? 0) +
+                    (detailData?.surplus_amount ?? 0)) /
+                  -100
+                ).toFixed(2)
+              })
+            }
+          ]
+        : []),
+      {
+        label: t("order.checkout.billing-card.total-price"),
+        value: t("order.checkout.billing-card.price", {
+          value: Number((detailData?.total_amount ?? 0) / 100).toFixed(2)
+        })
       }
+    ],
+    [detailData, t]
+  );
 
-      setLoadingQr(false);
-    } catch {
-      enqueueSnackbar("支付失败", { variant: "error" });
-    } finally {
-      setSubmitting(false);
-    }
-  }, [detailData, paymentMethodState]);
+  const handleClick = useCallback(
+    async (e: React.MouseEvent | React.TouchEvent) => {
+      e.preventDefault();
 
-  const price = ((detailData?.total_amount ?? 0) / 100).toFixed(2);
+      if (detailData && paymentMethodState) {
+        try {
+          setSubmitting(true);
+
+          ReactGA.event("click", {
+            category: "order",
+            label: "checkout",
+            method: paymentMethodIndex.get(paymentMethodState)?.name,
+            method_id: paymentMethodState
+          });
+
+          const res = await checkoutOrder({
+            trade_no: detailData.trade_no,
+            method: paymentMethodState
+          }).unwrap();
+
+          if (typeof res === "string") {
+            if (isMobile()) {
+              window.location.href = res;
+            } else {
+              setQrCodeUrl(res);
+              setOpen(true);
+              setPaid(false);
+            }
+          } else if (res?.type === "qrcode") {
+            setQrCodeUrl(res.data);
+            setOpen(true);
+            setPaid(false);
+          } else {
+            window.location.href = res?.data || "/";
+          }
+        } catch (err) {
+          enqueueSnackbar(t("notice::checkout-failed"), {
+            variant: "error"
+          });
+        } finally {
+          setSubmitting(false);
+        }
+      }
+    },
+    [checkoutOrder, detailData, paymentMethodState]
+  );
 
   return (
     <>
       <MainCard title={t("order.checkout.billing-card.title")}>
         <Stack spacing={2} divider={<Divider />}>
-          {isLoading ? (
-            <Skeleton height={40} />
-          ) : (
-            <Stack direction="row" justifyContent="space-between">
-              <Typography>{detailData?.plan?.name}</Typography>
-              <Typography>¥{price}</Typography>
-            </Stack>
+          {lines.map((line, index) =>
+            isLoading ? (
+              <Skeleton key={index} height={40} />
+            ) : (
+              <Stack key={index} direction="row" justifyContent="space-between">
+                <Typography>{line.label}</Typography>
+                <Typography>{line.value}</Typography>
+              </Stack>
+            )
           )}
 
           <Button
             fullWidth
             variant="contained"
-            disabled={isSubmitting}
+            disabled={isLoading || isSubmitting}
             onClick={handleClick}
           >
-            立即支付
+            {t("order.checkout.billing-card.button")}
           </Button>
         </Stack>
       </MainCard>
 
-      {/* 🍎 Glassmorphism 弹窗 */}
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        BackdropComponent={Backdrop}
-        BackdropProps={{
-          sx: {
-            backdropFilter: "blur(14px)",
-            backgroundColor: "rgba(0,0,0,0.25)"
-          }
-        }}
-      >
-        <Fade in={open}>
-          <DialogContent
-            sx={(theme) => ({
-              width: 300,
-              borderRadius: "22px",
-              textAlign: "center",
-              position: "relative",
-              p: 3,
-              overflow: "hidden",
+      {/* 💎 弹窗 */}
+      <Dialog open={open} maxWidth="xs">
+        <DialogContent
+          style={{
+            width: 340,
+            padding: 24,
+            textAlign: "center",
+            position: "relative"
+          }}
+        >
+          {!paid && (
+            <IconButton
+              onClick={() => setOpen(false)}
+              style={{ position: "absolute", right: 10, top: 10 }}
+            >
+              <CloseIcon />
+            </IconButton>
+          )}
 
-              // 🌟 玻璃底
-              background:
-                theme.palette.mode === "dark"
-                  ? "rgba(30,30,30,0.6)"
-                  : "rgba(255,255,255,0.7)",
-
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-
-              // 🌟 边框
-              border:
-                theme.palette.mode === "dark"
-                  ? "1px solid rgba(255,255,255,0.08)"
-                  : "1px solid rgba(255,255,255,0.3)",
-
-              // 🌟 阴影
-              boxShadow:
-                theme.palette.mode === "dark"
-                  ? "0 8px 32px rgba(0,0,0,0.6)"
-                  : "0 8px 32px rgba(31,38,135,0.1)",
-
-              // 🌟 高光层（苹果感关键）
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                inset: 0,
-                borderRadius: "22px",
-                background:
-                  "linear-gradient(120deg, rgba(255,255,255,0.35), rgba(255,255,255,0.05))",
-                opacity: theme.palette.mode === "dark" ? 0.06 : 0.4,
-                pointerEvents: "none"
-              }
-            })}
-          >
-            {!paid && (
-              <IconButton
-                onClick={() => setOpen(false)}
-                sx={{
-                  position: "absolute",
-                  right: 10,
-                  top: 10,
-                  opacity: 0.6
-                }}
-              >
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            )}
-
-            {paid ? (
+          {paid ? (
+            <Fade in={paid}>
               <Stack alignItems="center" spacing={2}>
-                <CheckCircleIcon sx={{ fontSize: 60, color: "#34c759" }} />
-                <Typography sx={{ fontWeight: 600 }}>
+                <Zoom in={paid}>
+                  <CheckCircleIcon
+                    style={{ fontSize: 64, color: "#52c41a" }}
+                  />
+                </Zoom>
+
+                <Typography sx={{ fontSize: 20, fontWeight: 600 }}>
                   支付成功
                 </Typography>
               </Stack>
-            ) : (
-              <>
-                {/* 💰 大金额 */}
-                <Typography
-                  sx={{
-                    fontSize: 34,
-                    fontWeight: 700
-                  }}
-                >
-                  ¥{price}
-                </Typography>
+            </Fade>
+          ) : (
+            <>
+              <Typography sx={{ fontSize: 28, fontWeight: 600 }}>
+                ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
+              </Typography>
 
-                {/* 套餐 */}
-                <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-                  {detailData?.plan?.name}
-                </Typography>
+              <Typography sx={{ fontSize: 12, color: "#aaa", mb: 2 }}>
+                {detailData?.plan?.name}
+              </Typography>
 
-                {/* 🆕 订单号 */}
-                <Typography
-                  sx={{
-                    fontSize: 11,
-                    color: "text.secondary",
-                    mt: 0.5,
-                    wordBreak: "break-all"
-                  }}
-                >
-                  订单号：{detailData?.trade_no}
-                </Typography>
+              {/* 🚀 本地二维码（秒加载） */}
+              <Fade in={!!qrCodeUrl}>
+                <div>
+                  <QRCode
+                    value={qrCodeUrl}
+                    size={180}
+                    style={{
+                      borderRadius: 10
+                    }}
+                  />
+                </div>
+              </Fade>
 
-                {/* 二维码 */}
-                <Box
-                  sx={{
-                    mt: 2,
-                    width: 180,
-                    height: 180,
-                    mx: "auto",
-                    borderRadius: 2,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: "rgba(255,255,255,0.9)"
-                  }}
-                >
-                  {loadingQr ? (
-                    <Typography sx={{ fontSize: 12 }}>
-                      加载中...
-                    </Typography>
-                  ) : (
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                        qrCodeUrl
-                      )}`}
-                      style={{ width: 150 }}
-                    />
-                  )}
-                </Box>
-
-                {/* 提示 */}
-                <Typography
-                  sx={{
-                    mt: 1.5,
-                    fontSize: 13,
-                    color: "text.secondary"
-                  }}
-                >
+              <Stack spacing={0.5} sx={{ mt: 2 }}>
+                <Typography sx={{ fontSize: 13 }}>
                   请使用支付宝扫码支付
                 </Typography>
+              </Stack>
 
-                {/* 🍎 胶囊取消按钮 */}
-                <Button
-                  onClick={() => setOpen(false)}
-                  fullWidth
-                  sx={(theme) => ({
-                    mt: 2,
-                    height: 36,
-                    borderRadius: "999px",
-                    fontSize: 13,
-                    background:
-                      theme.palette.mode === "dark"
-                        ? "rgba(255,255,255,0.08)"
-                        : "rgba(0,0,0,0.05)",
-                    backdropFilter: "blur(10px)"
-                  })}
-                >
-                  取消
-                </Button>
-              </>
-            )}
-          </DialogContent>
-        </Fade>
+              <Button
+                fullWidth
+                variant="outlined"
+                sx={{ mt: 3 }}
+                onClick={() => setOpen(false)}
+              >
+                取消支付
+              </Button>
+            </>
+          )}
+        </DialogContent>
       </Dialog>
     </>
   );
