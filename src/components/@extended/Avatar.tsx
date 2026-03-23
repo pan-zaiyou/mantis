@@ -57,12 +57,11 @@ const AvatarStyle = styled(MuiAvatar, {
 })(({ theme, color, type, size }: StyleProps) => ({
   ...getSizeStyle(size),
   ...getColorStyle({ theme, color, type }),
-  transition: "all 0.4s ease", // ✨ 平滑动画
+  transition: "all 0.4s ease"
 }));
 
 // ==============================|| 工具函数 ||============================== //
 
-// 稳定 hash（保证每个用户固定风格）
 function hashString(str: string) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -89,22 +88,27 @@ export default function Avatar({
   ...others
 }: Props) {
   const theme = useTheme();
-  const { alt, ...rest } = others as any;
+  const { alt, src, ...rest } = others as any;
+
+  // 🎯 判断是否“用户头像”（关键修复点）
+  const isUserAvatar = typeof alt === "string" && alt.includes("@");
 
   const baseSeed = alt || "user";
 
-  // 🎯 轮询索引（每个用户独立）
+  // 🎯 轮询 index（只给用户头像用）
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    if (!isUserAvatar) return; // ❗ 非用户头像不轮询
+
     const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % 5); // 5种变化
-    }, 6000); // 每6秒切换
+      setIndex((prev) => (prev + 1) % 5);
+    }, 6000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [isUserAvatar]);
 
-  // 🎨 二次元头像（核心）
+  // 🎨 二次元头像
   const seed = baseSeed + index;
 
   const animeUrl = `https://api.dicebear.com/7.x/lorelei/svg?seed=${seed}&radius=50&backgroundColor=ffeef8,e0f7ff,f5f5f7`;
@@ -113,11 +117,16 @@ export default function Avatar({
   const localIndex = (hashString(baseSeed) % 5) + 1;
   const fallback = `/assets/images/users/avatar-${localIndex}.png`;
 
-  const [imgSrc, setImgSrc] = useState(animeUrl);
+  // 🚀 核心逻辑：只对用户头像生效
+  const [imgSrc, setImgSrc] = useState(
+    isUserAvatar ? animeUrl : src
+  );
 
   useEffect(() => {
-    setImgSrc(animeUrl);
-  }, [animeUrl]);
+    if (isUserAvatar) {
+      setImgSrc(animeUrl);
+    }
+  }, [animeUrl, isUserAvatar]);
 
   return (
     <AvatarStyle
@@ -127,7 +136,11 @@ export default function Avatar({
       type={type}
       size={size}
       src={imgSrc}
-      onError={() => setImgSrc(fallback)}
+      onError={() => {
+        if (isUserAvatar) {
+          setImgSrc(fallback);
+        }
+      }}
       {...rest}
     >
       {children}
