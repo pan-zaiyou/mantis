@@ -39,6 +39,7 @@ const BillingCard: React.FC = () => {
 
   const [open, setOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [qrLoaded, setQrLoaded] = useState(false);
 
   const isMobile = () =>
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -137,10 +138,12 @@ const BillingCard: React.FC = () => {
             } else {
               setQrCodeUrl(res);
               setOpen(true);
+              setQrLoaded(false);
             }
           } else if (res?.type === "qrcode") {
             setQrCodeUrl(res.data);
             setOpen(true);
+            setQrLoaded(false);
           } else {
             window.location.href = res?.data || "/";
           }
@@ -175,8 +178,8 @@ const BillingCard: React.FC = () => {
                 alignItems="center"
                 key={index}
               >
-                <Typography sx={{ fontSize: 16, lineHeight: 1.8 }}>{line.label}</Typography>
-                <Typography sx={{ fontSize: 18, fontWeight: 600, lineHeight: 1.8 }}>{line.value}</Typography>
+                <Typography sx={{ fontSize: 15, lineHeight: 1.4 }}>{line.label}</Typography>
+                <Typography sx={{ fontSize: 20, fontWeight: 800, lineHeight: 1.4 }}>{line.value}</Typography>
               </Stack>
             )
           )}
@@ -221,19 +224,19 @@ const BillingCard: React.FC = () => {
             <CloseIcon />
           </IconButton>
 
-          <Typography sx={{ fontSize: 13, color: "#999", mb: 1 }}>
+          <Typography sx={{ fontSize: 13, color: "#999", mb: 1, lineHeight: 1.3 }}>
             扫码支付
           </Typography>
 
-          <Typography sx={{ fontSize: 36, fontWeight: 700, color: "#111", lineHeight: 1.5 }}>
+          <Typography sx={{ fontSize: 38, fontWeight: 800, color: "#111", lineHeight: 1.3 }}>
             ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
           </Typography>
 
-          <Typography sx={{ fontSize: 14, color: "#555", mb: 2, lineHeight: 1.5 }}>
+          <Typography sx={{ fontSize: 14, color: "#555", mb: 2, lineHeight: 1.3 }}>
             {detailData?.plan?.name}
           </Typography>
 
-          {/* ✅ 二维码（比例优化） */}
+          {/* ✅ 二维码（比例优化 + Skeleton 占位） */}
           <div
             style={{
               background: "#fafafa",
@@ -241,35 +244,42 @@ const BillingCard: React.FC = () => {
               padding: 14,
               display: "inline-block",
               border: "1px solid #f0f0f0",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              minWidth: 180,
+              minHeight: 180
             }}
           >
+            {!qrLoaded && (
+              <Skeleton variant="rectangular" width={180} height={180} />
+            )}
             <img
               src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
                 qrCodeUrl
               )}`}
+              loading="lazy"
+              onLoad={() => setQrLoaded(true)}
               style={{
                 width: 180,
                 height: 180,
-                display: "block"
+                display: qrLoaded ? "block" : "none"
               }}
             />
           </div>
 
           {/* 提示 */}
-          <Stack spacing={1} sx={{ mt: 2 }}>
-            <Typography sx={{ fontSize: 14, color: "#333", lineHeight: 1.6 }}>
+          <Stack spacing={0.8} sx={{ mt: 2 }}>
+            <Typography sx={{ fontSize: 14, color: "#333", lineHeight: 1.3 }}>
               请使用支付宝扫码完成支付
             </Typography>
-            <Typography sx={{ fontSize: 13, color: "#52c41a", lineHeight: 1.6 }}>
+            <Typography sx={{ fontSize: 13, color: "#52c41a", lineHeight: 1.3 }}>
               支付完成后将自动跳转...
             </Typography>
-            <Typography sx={{ fontSize: 13, color: "#888", lineHeight: 1.6 }}>
+            <Typography sx={{ fontSize: 13, color: "#888", lineHeight: 1.3 }}>
               关闭后可在订单列表继续支付
             </Typography>
           </Stack>
 
-          {/* ✅ 按钮（最终版） */}
+          {/* ✅ 按钮 */}
           <Button
             variant="contained"
             color="error"
