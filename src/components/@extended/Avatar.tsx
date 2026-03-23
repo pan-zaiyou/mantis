@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 
 // material-ui
 import { styled, useTheme, Theme } from "@mui/material/styles";
@@ -11,66 +11,38 @@ import getColors from "@/utils/getColors";
 // types
 import { AvatarTypeProps, ColorProps, ExtendedStyleProps, SizeProps } from "@/types/extended";
 
-// ==============================|| AVATAR - COLOR STYLE ||============================== //
+// ==============================|| 样式 ||============================== //
 
 interface AvatarStyleProps extends ExtendedStyleProps {
   variant?: AvatarProps["variant"];
   type?: AvatarTypeProps;
 }
 
-function getColorStyle({ variant, theme, color, type }: AvatarStyleProps) {
+function getColorStyle({ theme, color, type }: AvatarStyleProps) {
   const colors = getColors(theme, color);
   const { lighter, light, main, contrastText } = colors;
 
   switch (type) {
     case "filled":
-      return {
-        color: contrastText,
-        backgroundColor: main
-      };
+      return { color: contrastText, backgroundColor: main };
     case "outlined":
-      return {
-        color: main,
-        border: "1px solid",
-        borderColor: main,
-        backgroundColor: "transparent"
-      };
+      return { color: main, border: "1px solid", borderColor: main, backgroundColor: "transparent" };
     case "combined":
-      return {
-        color: main,
-        border: "1px solid",
-        borderColor: light,
-        backgroundColor: lighter
-      };
+      return { color: main, border: "1px solid", borderColor: light, backgroundColor: lighter };
     default:
-      return {
-        color: main,
-        backgroundColor: lighter
-      };
+      return { color: main, backgroundColor: lighter };
   }
 }
-
-// ==============================|| AVATAR - SIZE STYLE ||============================== //
 
 function getSizeStyle(size?: SizeProps) {
   switch (size) {
-    case "badge":
-      return { border: "2px solid", fontSize: "0.675rem", width: 20, height: 20 };
-    case "xs":
-      return { fontSize: "0.75rem", width: 24, height: 24 };
-    case "sm":
-      return { fontSize: "0.875rem", width: 32, height: 32 };
-    case "lg":
-      return { fontSize: "1.2rem", width: 52, height: 52 };
-    case "xl":
-      return { fontSize: "1.5rem", width: 64, height: 64 };
-    case "md":
-    default:
-      return { fontSize: "1rem", width: 40, height: 40 };
+    case "xs": return { width: 24, height: 24 };
+    case "sm": return { width: 32, height: 32 };
+    case "lg": return { width: 52, height: 52 };
+    case "xl": return { width: 64, height: 64 };
+    default: return { width: 40, height: 40 };
   }
 }
-
-// ==============================|| STYLED - AVATAR ||============================== //
 
 interface StyleProps {
   color: ColorProps;
@@ -82,30 +54,30 @@ interface StyleProps {
 
 const AvatarStyle = styled(MuiAvatar, {
   shouldForwardProp: (prop) => prop !== "color" && prop !== "type" && prop !== "size"
-})(({ theme, variant, color, type, size }: StyleProps) => ({
+})(({ theme, color, type, size }: StyleProps) => ({
   ...getSizeStyle(size),
-  ...getColorStyle({ variant, theme, color, type }),
-  ...(size === "badge" && {
-    borderColor: theme.palette.background.default
-  })
+  ...getColorStyle({ theme, color, type }),
+  transition: "all 0.4s ease", // ✨ 平滑动画
 }));
 
-// ==============================|| EXTENDED - AVATAR ||============================== //
+// ==============================|| 工具函数 ||============================== //
 
-export interface Props extends AvatarProps {
-  color?: ColorProps;
-  children?: ReactNode | string;
-  type?: AvatarTypeProps;
-  size?: SizeProps;
-}
-
-// 🔥 生成稳定 hash（保证每个用户头像固定）
+// 稳定 hash（保证每个用户固定风格）
 function hashString(str: string) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
   return Math.abs(hash);
+}
+
+// ==============================|| 主组件 ||============================== //
+
+export interface Props extends AvatarProps {
+  color?: ColorProps;
+  children?: ReactNode | string;
+  type?: AvatarTypeProps;
+  size?: SizeProps;
 }
 
 export default function Avatar({
@@ -117,19 +89,35 @@ export default function Avatar({
   ...others
 }: Props) {
   const theme = useTheme();
-  const { src, alt, ...rest } = others as any;
+  const { alt, ...rest } = others as any;
 
-  const seed = alt || "default";
+  const baseSeed = alt || "user";
 
-  // 🎨 动漫头像（主方案）
-  const animeUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}&radius=50&backgroundColor=f5f5f7,e5e5ea`;
+  // 🎯 轮询索引（每个用户独立）
+  const [index, setIndex] = useState(0);
 
-  // 🖼️ 本地兜底头像
-  const index = (hashString(seed) % 5) + 1;
-  const localAvatar = `/assets/images/users/avatar-${index}.png`;
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % 5); // 5种变化
+    }, 6000); // 每6秒切换
 
-  // 🚀 当前头像（优先外网）
-  const [imgSrc, setImgSrc] = useState(src || animeUrl);
+    return () => clearInterval(timer);
+  }, []);
+
+  // 🎨 二次元头像（核心）
+  const seed = baseSeed + index;
+
+  const animeUrl = `https://api.dicebear.com/7.x/lorelei/svg?seed=${seed}&radius=50&backgroundColor=ffeef8,e0f7ff,f5f5f7`;
+
+  // 🖼️ 本地兜底
+  const localIndex = (hashString(baseSeed) % 5) + 1;
+  const fallback = `/assets/images/users/avatar-${localIndex}.png`;
+
+  const [imgSrc, setImgSrc] = useState(animeUrl);
+
+  useEffect(() => {
+    setImgSrc(animeUrl);
+  }, [animeUrl]);
 
   return (
     <AvatarStyle
@@ -139,11 +127,7 @@ export default function Avatar({
       type={type}
       size={size}
       src={imgSrc}
-      onError={() => {
-        if (imgSrc !== localAvatar) {
-          setImgSrc(localAvatar);
-        }
-      }}
+      onError={() => setImgSrc(fallback)}
       {...rest}
     >
       {children}
