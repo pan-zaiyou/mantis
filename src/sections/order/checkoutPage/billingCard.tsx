@@ -46,7 +46,7 @@ const BillingCard: React.FC = () => {
   const isMobile = () =>
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  // 🚀 支付状态检测（更快）
+  // 🚀 支付状态检测
   useEffect(() => {
     if (!open || !detailData?.trade_no) return;
 
@@ -80,7 +80,6 @@ const BillingCard: React.FC = () => {
     try {
       setSubmitting(true);
 
-      // ⚡ 秒开弹窗
       setOpen(true);
       setLoadingQr(true);
       setPaid(false);
@@ -134,7 +133,7 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
-      {/* 🍎 Apple风 + 暗黑模式 + 3D */}
+      {/* 🍎 Apple风弹窗 */}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
@@ -153,7 +152,6 @@ const BillingCard: React.FC = () => {
               borderRadius: "22px",
               textAlign: "center",
 
-              // 🌙 自动暗黑
               background:
                 theme.palette.mode === "dark"
                   ? "rgba(30,30,30,0.65)"
@@ -165,16 +163,12 @@ const BillingCard: React.FC = () => {
               boxShadow:
                 theme.palette.mode === "dark"
                   ? "0 10px 40px rgba(0,0,0,0.6)"
-                  : `
-                    0 10px 30px rgba(0,0,0,0.1),
-                    0 30px 60px rgba(0,0,0,0.15)
-                  `,
+                  : "0 10px 30px rgba(0,0,0,0.1)",
 
               position: "relative",
               p: 3
             })}
           >
-            {/* 关闭按钮 */}
             {!paid && (
               <IconButton
                 onClick={() => setOpen(false)}
@@ -191,28 +185,45 @@ const BillingCard: React.FC = () => {
 
             {paid ? (
               <Stack alignItems="center" spacing={2}>
-                <CheckCircleIcon
-                  sx={{ fontSize: 60, color: "#34c759" }}
-                />
+                <CheckCircleIcon sx={{ fontSize: 60, color: "#34c759" }} />
                 <Typography sx={{ fontWeight: 600 }}>
                   支付成功
                 </Typography>
               </Stack>
             ) : (
               <>
-                {/* 金额 */}
-                <Typography sx={{ fontSize: 26, fontWeight: 600 }}>
+                {/* 💰 金额（更大更粗） */}
+                <Typography
+                  sx={{
+                    fontSize: 34,
+                    fontWeight: 700,
+                    letterSpacing: "-0.5px"
+                  }}
+                >
                   ¥{price}
                 </Typography>
 
                 {/* 套餐 */}
-                <Typography sx={{ fontSize: 12, color: "text.secondary", mb: 2 }}>
+                <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
                   {detailData?.plan?.name}
                 </Typography>
 
-                {/* 🍎 3D二维码卡片（暗黑适配） */}
+                {/* 🆕 订单号 */}
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "text.secondary",
+                    mt: 0.5,
+                    wordBreak: "break-all"
+                  }}
+                >
+                  订单号：{detailData?.trade_no}
+                </Typography>
+
+                {/* 二维码 */}
                 <Box
                   sx={(theme) => ({
+                    mt: 2,
                     width: 180,
                     height: 180,
                     mx: "auto",
@@ -230,33 +241,11 @@ const BillingCard: React.FC = () => {
                     boxShadow:
                       theme.palette.mode === "dark"
                         ? "0 8px 25px rgba(0,0,0,0.5)"
-                        : `
-                          0 8px 20px rgba(0,0,0,0.08),
-                          inset 0 1px 0 rgba(255,255,255,0.6)
-                        `,
-
-                    transition: "all 0.3s ease"
+                        : "0 8px 20px rgba(0,0,0,0.08)"
                   })}
-                  onMouseMove={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-
-                    const rotateX = -(y - rect.height / 2) / 20;
-                    const rotateY = (x - rect.width / 2) / 20;
-
-                    e.currentTarget.style.transform = `
-                      perspective(800px)
-                      rotateX(${rotateX}deg)
-                      rotateY(${rotateY}deg)
-                    `;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "none";
-                  }}
                 >
                   {loadingQr ? (
-                    <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
+                    <Typography sx={{ fontSize: 12 }}>
                       加载中...
                     </Typography>
                   ) : (
@@ -269,7 +258,7 @@ const BillingCard: React.FC = () => {
                   )}
                 </Box>
 
-                {/* 提示（优化行距） */}
+                {/* 提示 */}
                 <Typography
                   sx={{
                     mt: 1.5,
@@ -278,18 +267,25 @@ const BillingCard: React.FC = () => {
                     color: "text.secondary"
                   }}
                 >
-                  请使用支付宝扫码
+                  请使用支付宝扫码支付
                 </Typography>
 
-                {/* 取消按钮（优化尺寸） */}
+                {/* 🍎 胶囊背景取消按钮 */}
                 <Button
                   onClick={() => setOpen(false)}
-                  sx={{
+                  fullWidth
+                  sx={(theme) => ({
                     mt: 2,
-                    fontSize: 12,
-                    minWidth: 80,
-                    color: "text.secondary"
-                  }}
+                    height: 36,
+                    borderRadius: "999px",
+                    fontSize: 13,
+                    background:
+                      theme.palette.mode === "dark"
+                        ? "rgba(255,255,255,0.08)"
+                        : "rgba(0,0,0,0.05)",
+                    color: "text.primary",
+                    backdropFilter: "blur(10px)"
+                  })}
                 >
                   取消
                 </Button>
