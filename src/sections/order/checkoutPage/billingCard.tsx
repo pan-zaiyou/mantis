@@ -11,7 +11,8 @@ import {
   DialogContent,
   IconButton,
   Fade,
-  Backdrop
+  Backdrop,
+  Box
 } from "@mui/material";
 
 import CloseIcon from "@mui/icons-material/Close";
@@ -24,14 +25,12 @@ import { useTranslation } from "react-i18next";
 import MainCard from "@/components/MainCard";
 import { useCheckoutOrderMutation } from "@/store/services/api";
 import { useCheckoutContext } from "@/sections/order/checkoutPage/context";
-import ReactGA from "react-ga4";
 
 const BillingCard: React.FC = () => {
   const { t } = useTranslation();
   const {
     detail: { data: detailData, isLoading },
     paymentMethodState,
-    paymentMethodIndex,
     setSubmitting,
     isSubmitting
   } = useCheckoutContext();
@@ -47,11 +46,11 @@ const BillingCard: React.FC = () => {
   const isMobile = () =>
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  // 🚀 支付检测
+  // 🚀 支付状态检测（更快）
   useEffect(() => {
     if (!open || !detailData?.trade_no) return;
 
-    const timer = setInterval(async () => {
+    const check = async () => {
       try {
         const res = await fetch(
           `/api/v1/user/order/fetch?trade_no=${detailData.trade_no}`
@@ -64,10 +63,13 @@ const BillingCard: React.FC = () => {
           setTimeout(() => {
             setOpen(false);
             window.location.href = `/order/${detailData.trade_no}`;
-          }, 800);
+          }, 700);
         }
-      } catch (err) {}
-    }, 1000);
+      } catch {}
+    };
+
+    check();
+    const timer = setInterval(check, 1000);
 
     return () => clearInterval(timer);
   }, [open, detailData]);
@@ -78,8 +80,10 @@ const BillingCard: React.FC = () => {
     try {
       setSubmitting(true);
 
-      setOpen(true);        // 🍎 立即打开
+      // ⚡ 秒开弹窗
+      setOpen(true);
       setLoadingQr(true);
+      setPaid(false);
 
       const res = await checkoutOrder({
         trade_no: detailData.trade_no,
@@ -92,10 +96,12 @@ const BillingCard: React.FC = () => {
         } else {
           setQrCodeUrl(res);
         }
+      } else if (res?.type === "qrcode") {
+        setQrCodeUrl(res.data);
       }
 
       setLoadingQr(false);
-    } catch (err) {
+    } catch {
       enqueueSnackbar("支付失败", { variant: "error" });
     } finally {
       setSubmitting(false);
@@ -128,43 +134,60 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
-      {/* 🍎 Apple风弹窗 */}
+      {/* 🍎 Apple风 + 暗黑模式 + 3D */}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
         BackdropComponent={Backdrop}
         BackdropProps={{
           sx: {
-            backdropFilter: "blur(12px)",
+            backdropFilter: "blur(14px)",
             backgroundColor: "rgba(0,0,0,0.25)"
           }
         }}
       >
         <Fade in={open}>
           <DialogContent
-            sx={{
+            sx={(theme) => ({
               width: 300,
-              borderRadius: "20px",
+              borderRadius: "22px",
               textAlign: "center",
-              background: "rgba(255,255,255,0.75)",
-              backdropFilter: "blur(20px)",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+
+              // 🌙 自动暗黑
+              background:
+                theme.palette.mode === "dark"
+                  ? "rgba(30,30,30,0.65)"
+                  : "rgba(255,255,255,0.65)",
+
+              backdropFilter: "blur(30px)",
+              WebkitBackdropFilter: "blur(30px)",
+
+              boxShadow:
+                theme.palette.mode === "dark"
+                  ? "0 10px 40px rgba(0,0,0,0.6)"
+                  : `
+                    0 10px 30px rgba(0,0,0,0.1),
+                    0 30px 60px rgba(0,0,0,0.15)
+                  `,
+
               position: "relative",
               p: 3
-            }}
+            })}
           >
-            {/* 关闭 */}
-            <IconButton
-              onClick={() => setOpen(false)}
-              sx={{
-                position: "absolute",
-                right: 10,
-                top: 10,
-                opacity: 0.6
-              }}
-            >
-              <CloseIcon fontSize="small" />
-            </IconButton>
+            {/* 关闭按钮 */}
+            {!paid && (
+              <IconButton
+                onClick={() => setOpen(false)}
+                sx={{
+                  position: "absolute",
+                  right: 10,
+                  top: 10,
+                  opacity: 0.6
+                }}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            )}
 
             {paid ? (
               <Stack alignItems="center" spacing={2}>
@@ -177,30 +200,63 @@ const BillingCard: React.FC = () => {
               </Stack>
             ) : (
               <>
+                {/* 金额 */}
                 <Typography sx={{ fontSize: 26, fontWeight: 600 }}>
                   ¥{price}
                 </Typography>
 
-                <Typography sx={{ fontSize: 12, color: "#888", mb: 2 }}>
+                {/* 套餐 */}
+                <Typography sx={{ fontSize: 12, color: "text.secondary", mb: 2 }}>
                   {detailData?.plan?.name}
                 </Typography>
 
-                {/* 🍎 二维码 / 骨架 */}
-                <div
-                  style={{
+                {/* 🍎 3D二维码卡片（暗黑适配） */}
+                <Box
+                  sx={(theme) => ({
                     width: 180,
                     height: 180,
-                    margin: "0 auto",
-                    borderRadius: 12,
-                    background: "#fff",
+                    mx: "auto",
+                    borderRadius: 2,
+
+                    background:
+                      theme.palette.mode === "dark"
+                        ? "linear-gradient(145deg, #2a2a2a, #1f1f1f)"
+                        : "linear-gradient(145deg, #ffffff, #f3f3f3)",
+
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.08)"
+
+                    boxShadow:
+                      theme.palette.mode === "dark"
+                        ? "0 8px 25px rgba(0,0,0,0.5)"
+                        : `
+                          0 8px 20px rgba(0,0,0,0.08),
+                          inset 0 1px 0 rgba(255,255,255,0.6)
+                        `,
+
+                    transition: "all 0.3s ease"
+                  })}
+                  onMouseMove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    const rotateX = -(y - rect.height / 2) / 20;
+                    const rotateY = (x - rect.width / 2) / 20;
+
+                    e.currentTarget.style.transform = `
+                      perspective(800px)
+                      rotateX(${rotateX}deg)
+                      rotateY(${rotateY}deg)
+                    `;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "none";
                   }}
                 >
                   {loadingQr ? (
-                    <Typography sx={{ fontSize: 12, color: "#aaa" }}>
+                    <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
                       加载中...
                     </Typography>
                   ) : (
@@ -208,22 +264,31 @@ const BillingCard: React.FC = () => {
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
                         qrCodeUrl
                       )}`}
-                      style={{ width: 160 }}
+                      style={{ width: 150 }}
                     />
                   )}
-                </div>
+                </Box>
 
-                <Typography sx={{ mt: 2, fontSize: 13 }}>
-                  使用支付宝扫码
+                {/* 提示（优化行距） */}
+                <Typography
+                  sx={{
+                    mt: 1.5,
+                    fontSize: 13,
+                    lineHeight: 1.4,
+                    color: "text.secondary"
+                  }}
+                >
+                  请使用支付宝扫码
                 </Typography>
 
-                {/* 🍎 小按钮 */}
+                {/* 取消按钮（优化尺寸） */}
                 <Button
                   onClick={() => setOpen(false)}
                   sx={{
                     mt: 2,
                     fontSize: 12,
-                    color: "#666"
+                    minWidth: 80,
+                    color: "text.secondary"
                   }}
                 >
                   取消
