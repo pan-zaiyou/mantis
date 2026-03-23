@@ -55,43 +55,18 @@ function getColorStyle({ variant, theme, color, type }: AvatarStyleProps) {
 function getSizeStyle(size?: SizeProps) {
   switch (size) {
     case "badge":
-      return {
-        border: "2px solid",
-        fontSize: "0.675rem",
-        width: 20,
-        height: 20
-      };
+      return { border: "2px solid", fontSize: "0.675rem", width: 20, height: 20 };
     case "xs":
-      return {
-        fontSize: "0.75rem",
-        width: 24,
-        height: 24
-      };
+      return { fontSize: "0.75rem", width: 24, height: 24 };
     case "sm":
-      return {
-        fontSize: "0.875rem",
-        width: 32,
-        height: 32
-      };
+      return { fontSize: "0.875rem", width: 32, height: 32 };
     case "lg":
-      return {
-        fontSize: "1.2rem",
-        width: 52,
-        height: 52
-      };
+      return { fontSize: "1.2rem", width: 52, height: 52 };
     case "xl":
-      return {
-        fontSize: "1.5rem",
-        width: 64,
-        height: 64
-      };
+      return { fontSize: "1.5rem", width: 64, height: 64 };
     case "md":
     default:
-      return {
-        fontSize: "1rem",
-        width: 40,
-        height: 40
-      };
+      return { fontSize: "1rem", width: 40, height: 40 };
   }
 }
 
@@ -124,7 +99,7 @@ export interface Props extends AvatarProps {
   size?: SizeProps;
 }
 
-// 🔥 生成稳定随机数（同一个用户永远一样）
+// 🔥 生成稳定 hash（保证每个用户头像固定）
 function hashString(str: string) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -144,18 +119,17 @@ export default function Avatar({
   const theme = useTheme();
   const { src, alt, ...rest } = others as any;
 
-  // 👇 用 alt 或 fallback 作为唯一标识
   const seed = alt || "default";
 
-  // 🔥 外网头像（科技风）
-  const dicebearUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}`;
+  // 🎨 动漫头像（主方案）
+  const animeUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}&radius=50&backgroundColor=f5f5f7,e5e5ea`;
 
-  // 🔥 本地头像（1~5稳定分配）
+  // 🖼️ 本地兜底头像
   const index = (hashString(seed) % 5) + 1;
   const localAvatar = `/assets/images/users/avatar-${index}.png`;
 
-  // 👇 控制是否使用本地头像
-  const [imgSrc, setImgSrc] = useState(src || dicebearUrl);
+  // 🚀 当前头像（优先外网）
+  const [imgSrc, setImgSrc] = useState(src || animeUrl);
 
   return (
     <AvatarStyle
@@ -166,7 +140,6 @@ export default function Avatar({
       size={size}
       src={imgSrc}
       onError={() => {
-        // 👇 外网失败 → 自动切换本地
         if (imgSrc !== localAvatar) {
           setImgSrc(localAvatar);
         }
