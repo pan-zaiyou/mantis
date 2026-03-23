@@ -1,168 +1,305 @@
-<!DOCTYPE html>
-<html lang="zh">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>支付页面</title>
-<style>
-  /* 全局字体和背景 */
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial;
-    margin: 0;
-    padding: 0;
-    background-color: #f9f9f9;
-    color: #333;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 
-  /* 支付卡片 */
-  .payment-card {
-    background-color: #ffffff;
-    border-radius: 20px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    padding: 30px;
-    width: 320px;
-    text-align: center;
-  }
+// material-ui
+import {
+  Button,
+  Divider,
+  Skeleton,
+  Stack,
+  Typography,
+  Dialog,
+  DialogContent,
+  IconButton,
+  Fade,
+  Backdrop,
+  Box
+} from "@mui/material";
 
-  /* 标题 */
-  .payment-card h2 {
-    font-size: 22px;
-    font-weight: 600;
-    margin-bottom: 20px;
-  }
+import CloseIcon from "@mui/icons-material/Close";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
-  /* 订单号 */
-  .order-number {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 20px;
-  }
+import { useSnackbar } from "notistack";
+import { useTranslation } from "react-i18next";
 
-  /* 二维码 */
-  .qrcode {
-    width: 180px;
-    height: 180px;
-    margin: 0 auto 20px;
-    background-color: #e0e5eb;
-    border-radius: 12px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 12px;
-    color: #888;
-  }
+// project
+import MainCard from "@/components/MainCard";
+import { useCheckoutOrderMutation } from "@/store/services/api";
+import { useCheckoutContext } from "@/sections/order/checkoutPage/context";
 
-  /* 倒计时 */
-  .countdown {
-    font-size: 16px;
-    color: #555;
-    margin-bottom: 25px;
-  }
+const BillingCard: React.FC = () => {
+  const { t } = useTranslation();
+  const {
+    detail: { data: detailData, isLoading },
+    paymentMethodState,
+    setSubmitting,
+    isSubmitting
+  } = useCheckoutContext();
 
-  /* 按钮样式 */
-  .btn {
-    display: inline-block;
-    width: 120px;
-    padding: 12px 0;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin: 0 10px;
-  }
+  const [checkoutOrder] = useCheckoutOrderMutation();
+  const { enqueueSnackbar } = useSnackbar();
 
-  /* 支付按钮 */
-  .btn-pay {
-    background-color: #4a90e2; /* 蓝灰色 */
-    color: #fff;
-    border: none;
-  }
-  .btn-pay:hover {
-    background-color: #357ABD;
-  }
+  const [open, setOpen] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [paid, setPaid] = useState(false);
+  const [loadingQr, setLoadingQr] = useState(false);
 
-  /* 取消按钮 */
-  .btn-cancel {
-    background-color: #fff;
-    color: #555;
-    border: 1px solid #ccc;
-  }
-  .btn-cancel:hover {
-    background-color: #f0f0f0;
-  }
+  const isMobile = () =>
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  /* 暗黑模式 */
-  @media (prefers-color-scheme: dark) {
-    body {
-      background-color: #1c1c1e;
-      color: #ddd;
+  // 🚀 支付状态检测（更快）
+  useEffect(() => {
+    if (!open || !detailData?.trade_no) return;
+
+    const check = async () => {
+      try {
+        const res = await fetch(
+          `/api/v1/user/order/fetch?trade_no=${detailData.trade_no}`
+        );
+        const data = await res.json();
+
+        if (data?.data?.status === 1) {
+          setPaid(true);
+
+          setTimeout(() => {
+            setOpen(false);
+            window.location.href = `/order/${detailData.trade_no}`;
+          }, 700);
+        }
+      } catch {}
+    };
+
+    check();
+    const timer = setInterval(check, 1000);
+
+    return () => clearInterval(timer);
+  }, [open, detailData]);
+
+  const handleClick = useCallback(async () => {
+    if (!detailData || !paymentMethodState) return;
+
+    try {
+      setSubmitting(true);
+
+      // ⚡ 秒开弹窗
+      setOpen(true);
+      setLoadingQr(true);
+      setPaid(false);
+
+      const res = await checkoutOrder({
+        trade_no: detailData.trade_no,
+        method: paymentMethodState
+      }).unwrap();
+
+      if (typeof res === "string") {
+        if (isMobile()) {
+          window.location.href = res;
+        } else {
+          setQrCodeUrl(res);
+        }
+      } else if (res?.type === "qrcode") {
+        setQrCodeUrl(res.data);
+      }
+
+      setLoadingQr(false);
+    } catch {
+      enqueueSnackbar("支付失败", { variant: "error" });
+    } finally {
+      setSubmitting(false);
     }
-    .payment-card {
-      background-color: #2c2c2e;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-    }
-    .order-number {
-      color: #aaa;
-    }
-    .qrcode {
-      background-color: #3a3a3c;
-      color: #888;
-    }
-    .countdown {
-      color: #ccc;
-    }
-    .btn-cancel {
-      color: #ccc;
-      border-color: #555;
-    }
-  }
-</style>
-</head>
-<body>
+  }, [detailData, paymentMethodState]);
 
-<div class="payment-card">
-  <h2>请扫码支付</h2>
-  <div class="order-number">订单号: 20260323001</div>
-  <div class="qrcode">二维码加载中...</div>
-  <div class="countdown">剩余时间: <span id="timer">05:00</span></div>
-  <div>
-    <button class="btn btn-pay" onclick="alert('支付成功!')">支付</button>
-    <button class="btn btn-cancel" onclick="alert('已取消支付')">取消</button>
-  </div>
-</div>
+  const price = ((detailData?.total_amount ?? 0) / 100).toFixed(2);
 
-<script>
-  // 倒计时逻辑（示例 5 分钟）
-  let totalSeconds = 300;
-  const timerElem = document.getElementById('timer');
-  const countdown = setInterval(() => {
-    let minutes = Math.floor(totalSeconds / 60);
-    let seconds = totalSeconds % 60;
-    timerElem.textContent = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
-    totalSeconds--;
-    if (totalSeconds < 0) {
-      clearInterval(countdown);
-      alert('支付已超时');
-    }
-  }, 1000);
+  return (
+    <>
+      <MainCard title={t("order.checkout.billing-card.title")}>
+        <Stack spacing={2} divider={<Divider />}>
+          {isLoading ? (
+            <Skeleton height={40} />
+          ) : (
+            <Stack direction="row" justifyContent="space-between">
+              <Typography>{detailData?.plan?.name}</Typography>
+              <Typography>¥{price}</Typography>
+            </Stack>
+          )}
 
-  // 模拟二维码加载
-  setTimeout(() => {
-    const qrcodeDiv = document.querySelector('.qrcode');
-    qrcodeDiv.textContent = '';
-    const img = document.createElement('img');
-    img.src = 'https://via.placeholder.com/180?text=QR'; // 替换为实际二维码链接
-    img.style.width = '100%';
-    img.style.height = '100%';
-    img.style.borderRadius = '12px';
-    qrcodeDiv.appendChild(img);
-  }, 1000);
-</script>
+          <Button
+            fullWidth
+            variant="contained"
+            disabled={isSubmitting}
+            onClick={handleClick}
+          >
+            立即支付
+          </Button>
+        </Stack>
+      </MainCard>
 
-</body>
-</html>
+      {/* 🍎 Apple风 + 暗黑模式 + 3D */}
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          sx: {
+            backdropFilter: "blur(14px)",
+            backgroundColor: "rgba(0,0,0,0.25)"
+          }
+        }}
+      >
+        <Fade in={open}>
+          <DialogContent
+            sx={(theme) => ({
+              width: 300,
+              borderRadius: "22px",
+              textAlign: "center",
+
+              // 🌙 自动暗黑
+              background:
+                theme.palette.mode === "dark"
+                  ? "rgba(30,30,30,0.65)"
+                  : "rgba(255,255,255,0.65)",
+
+              backdropFilter: "blur(30px)",
+              WebkitBackdropFilter: "blur(30px)",
+
+              boxShadow:
+                theme.palette.mode === "dark"
+                  ? "0 10px 40px rgba(0,0,0,0.6)"
+                  : `
+                    0 10px 30px rgba(0,0,0,0.1),
+                    0 30px 60px rgba(0,0,0,0.15)
+                  `,
+
+              position: "relative",
+              p: 3
+            })}
+          >
+            {/* 关闭按钮 */}
+            {!paid && (
+              <IconButton
+                onClick={() => setOpen(false)}
+                sx={{
+                  position: "absolute",
+                  right: 10,
+                  top: 10,
+                  opacity: 0.6
+                }}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            )}
+
+            {paid ? (
+              <Stack alignItems="center" spacing={2}>
+                <CheckCircleIcon
+                  sx={{ fontSize: 60, color: "#34c759" }}
+                />
+                <Typography sx={{ fontWeight: 600 }}>
+                  支付成功
+                </Typography>
+              </Stack>
+            ) : (
+              <>
+                {/* 金额 */}
+                <Typography sx={{ fontSize: 26, fontWeight: 600 }}>
+                  ¥{price}
+                </Typography>
+
+                {/* 套餐 */}
+                <Typography sx={{ fontSize: 12, color: "text.secondary", mb: 2 }}>
+                  {detailData?.plan?.name}
+                </Typography>
+
+                {/* 🍎 3D二维码卡片（暗黑适配） */}
+                <Box
+                  sx={(theme) => ({
+                    width: 180,
+                    height: 180,
+                    mx: "auto",
+                    borderRadius: 2,
+
+                    background:
+                      theme.palette.mode === "dark"
+                        ? "linear-gradient(145deg, #2a2a2a, #1f1f1f)"
+                        : "linear-gradient(145deg, #ffffff, #f3f3f3)",
+
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+
+                    boxShadow:
+                      theme.palette.mode === "dark"
+                        ? "0 8px 25px rgba(0,0,0,0.5)"
+                        : `
+                          0 8px 20px rgba(0,0,0,0.08),
+                          inset 0 1px 0 rgba(255,255,255,0.6)
+                        `,
+
+                    transition: "all 0.3s ease"
+                  })}
+                  onMouseMove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    const rotateX = -(y - rect.height / 2) / 20;
+                    const rotateY = (x - rect.width / 2) / 20;
+
+                    e.currentTarget.style.transform = `
+                      perspective(800px)
+                      rotateX(${rotateX}deg)
+                      rotateY(${rotateY}deg)
+                    `;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "none";
+                  }}
+                >
+                  {loadingQr ? (
+                    <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
+                      加载中...
+                    </Typography>
+                  ) : (
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                        qrCodeUrl
+                      )}`}
+                      style={{ width: 150 }}
+                    />
+                  )}
+                </Box>
+
+                {/* 提示（优化行距） */}
+                <Typography
+                  sx={{
+                    mt: 1.5,
+                    fontSize: 13,
+                    lineHeight: 1.4,
+                    color: "text.secondary"
+                  }}
+                >
+                  请使用支付宝扫码
+                </Typography>
+
+                {/* 取消按钮（优化尺寸） */}
+                <Button
+                  onClick={() => setOpen(false)}
+                  sx={{
+                    mt: 2,
+                    fontSize: 12,
+                    minWidth: 80,
+                    color: "text.secondary"
+                  }}
+                >
+                  取消
+                </Button>
+              </>
+            )}
+          </DialogContent>
+        </Fade>
+      </Dialog>
+    </>
+  );
+};
+
+export default BillingCard;
