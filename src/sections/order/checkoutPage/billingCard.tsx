@@ -25,6 +25,7 @@ import ReactGA from "react-ga4";
 
 const BillingCard: React.FC = () => {
   const { t } = useTranslation();
+
   const {
     detail: { data: detailData, isLoading },
     paymentMethodState,
@@ -42,7 +43,7 @@ const BillingCard: React.FC = () => {
   const isMobile = () =>
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  // 🚀 支付状态检测（优化版）
+  // 🚀 支付状态检测
   useEffect(() => {
     if (!open || !detailData?.trade_no) return;
 
@@ -55,10 +56,7 @@ const BillingCard: React.FC = () => {
 
         if (data?.data?.status === 1) {
           setOpen(false);
-
-          enqueueSnackbar("支付成功 🎉", {
-            variant: "success"
-          });
+          enqueueSnackbar("支付成功 🎉", { variant: "success" });
 
           setTimeout(() => {
             window.location.href = `/order/${detailData.trade_no}`;
@@ -69,9 +67,8 @@ const BillingCard: React.FC = () => {
       }
     };
 
-    check(); // 立即检测
-    const timer = setInterval(check, 1000); // 每1秒检测
-
+    check();
+    const timer = setInterval(check, 1000);
     return () => clearInterval(timer);
   }, [open, detailData]);
 
@@ -83,7 +80,9 @@ const BillingCard: React.FC = () => {
             ? t("order.checkout.product-info-card.deposit")
             : detailData?.plan.name,
         value: t("order.checkout.billing-card.price", {
-          value: Number((detailData?.total_amount ?? 0) / 100).toFixed(2)
+          value: Number(
+            (detailData?.total_amount ?? 0) / 100
+          ).toFixed(2)
         })
       },
       ...(detailData?.discount_amount || detailData?.surplus_amount
@@ -103,7 +102,9 @@ const BillingCard: React.FC = () => {
       {
         label: t("order.checkout.billing-card.total-price"),
         value: t("order.checkout.billing-card.price", {
-          value: Number((detailData?.total_amount ?? 0) / 100).toFixed(2)
+          value: Number(
+            (detailData?.total_amount ?? 0) / 100
+          ).toFixed(2)
         })
       }
     ],
@@ -166,7 +167,7 @@ const BillingCard: React.FC = () => {
         <Stack spacing={2} divider={<Divider />}>
           {lines.map((line, index) =>
             isLoading ? (
-              <Skeleton key={index} variant="text" width="100%" height={40} />
+              <Skeleton key={index} variant="text" height={40} />
             ) : (
               <Stack
                 direction="row"
@@ -191,109 +192,96 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
-      {/* 💎 支付弹窗 */}
+      {/* 💎 支付弹窗（优化版） */}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
         maxWidth="xs"
         PaperProps={{
           style: {
-            width: 360,
-            borderRadius: 16,
-            backdropFilter: "blur(10px)", // 背景模糊
-            background: "rgba(255, 255, 255, 0.95)" // 半透明
+            width: 320,
+            borderRadius: 14,
+            backdropFilter: "blur(12px)",
+            background: "rgba(255,255,255,0.96)"
           }
         }}
       >
         <DialogContent
           style={{
-            padding: "24px 20px",
+            padding: "20px 16px",
             textAlign: "center",
             position: "relative"
           }}
         >
+          {/* 关闭 */}
           <IconButton
             onClick={() => setOpen(false)}
-            style={{
-              position: "absolute",
-              right: 10,
-              top: 10
-            }}
+            style={{ position: "absolute", right: 6, top: 6 }}
           >
-            <CloseIcon />
+            <CloseIcon fontSize="small" />
           </IconButton>
 
-          <Typography sx={{ fontSize: 13, color: "#999", mb: 1 }}>
+          {/* 标题 */}
+          <Typography sx={{ fontSize: 12, color: "#999", mb: 0.5 }}>
             扫码支付
           </Typography>
 
-          <Typography
-            sx={{
-              fontSize: 30,
-              fontWeight: 600,
-              color: "#111"
-            }}
-          >
+          {/* 金额 */}
+          <Typography sx={{ fontSize: 26, fontWeight: 600 }}>
             ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
           </Typography>
 
-          <Typography sx={{ fontSize: 12, color: "#aaa", mb: 3 }}>
+          {/* 套餐 */}
+          <Typography sx={{ fontSize: 11, color: "#aaa", mb: 2 }}>
             {detailData?.plan?.name}
           </Typography>
 
+          {/* ✅ 二维码 */}
           <div
             style={{
-              background: "#fafafa",
-              borderRadius: 16,
-              padding: 14,
+              background: "#fff",
+              borderRadius: 12,
+              padding: 10,
               display: "inline-block",
               border: "1px solid #f0f0f0",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+              boxShadow: "0 6px 16px rgba(0,0,0,0.08)"
             }}
           >
             <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
                 qrCodeUrl
               )}`}
               style={{
-                width: 180,
-                height: 180,
-                borderRadius: 12
+                width: 200,
+                height: 200,
+                display: "block"
               }}
             />
           </div>
 
-          {/* ✅ 行距优化区域 */}
-          <Stack spacing={0.75} sx={{ mt: 2 }}>
-            <Typography sx={{ fontSize: 13, color: "#333" }}>
-              请使用支付宝扫码完成支付
+          {/* 提示 */}
+          <Stack spacing={0.5} sx={{ mt: 1.5 }}>
+            <Typography sx={{ fontSize: 12 }}>
+              请使用支付宝扫码支付
             </Typography>
-
-            <Typography sx={{ fontSize: 12, color: "#52c41a" }}>
-              支付完成后将自动跳转...
-            </Typography>
-
-            <Typography sx={{ fontSize: 12, color: "#bbb" }}>
-              关闭后可在订单列表继续支付
+            <Typography sx={{ fontSize: 11, color: "#52c41a" }}>
+              支付完成后自动跳转
             </Typography>
           </Stack>
 
+          {/* 按钮 */}
           <Button
-            fullWidth
-            variant="contained"
+            variant="outlined"
             color="error"
             sx={{
-              mt: 3,
-              height: 42,
+              mt: 2,
+              height: 36,
               borderRadius: 2,
-              fontWeight: 500,
-              "&:hover": {
-                backgroundColor: "#d32f2f"
-              }
+              fontSize: 13
             }}
             onClick={() => setOpen(false)}
           >
-            取消支付
+            取消
           </Button>
         </DialogContent>
       </Dialog>
