@@ -192,23 +192,23 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
-      {/* 💎 支付弹窗（优化版） */}
+      {/* 💎 支付弹窗 */}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
         maxWidth="xs"
         PaperProps={{
           style: {
-            width: 320,
-            borderRadius: 14,
-            backdropFilter: "blur(12px)",
-            background: "rgba(255,255,255,0.96)"
+            width: 340,
+            borderRadius: 16,
+            backdropFilter: "blur(10px)",
+            background: "rgba(255, 255, 255, 0.95)"
           }
         }}
       >
         <DialogContent
           style={{
-            padding: "20px 16px",
+            padding: "24px 20px",
             textAlign: "center",
             position: "relative"
           }}
@@ -216,35 +216,32 @@ const BillingCard: React.FC = () => {
           {/* 关闭 */}
           <IconButton
             onClick={() => setOpen(false)}
-            style={{ position: "absolute", right: 6, top: 6 }}
+            style={{ position: "absolute", right: 10, top: 10 }}
           >
-            <CloseIcon fontSize="small" />
+            <CloseIcon />
           </IconButton>
 
-          {/* 标题 */}
-          <Typography sx={{ fontSize: 12, color: "#999", mb: 0.5 }}>
+          <Typography sx={{ fontSize: 13, color: "#999", mb: 1 }}>
             扫码支付
           </Typography>
 
-          {/* 金额 */}
-          <Typography sx={{ fontSize: 26, fontWeight: 600 }}>
+          <Typography sx={{ fontSize: 28, fontWeight: 600, color: "#111" }}>
             ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
           </Typography>
 
-          {/* 套餐 */}
-          <Typography sx={{ fontSize: 11, color: "#aaa", mb: 2 }}>
+          <Typography sx={{ fontSize: 12, color: "#aaa", mb: 2.5 }}>
             {detailData?.plan?.name}
           </Typography>
 
-          {/* ✅ 二维码 */}
+          {/* ✅ 二维码（比例优化） */}
           <div
             style={{
-              background: "#fff",
-              borderRadius: 12,
-              padding: 10,
+              background: "#fafafa",
+              borderRadius: 16,
+              padding: 14,
               display: "inline-block",
               border: "1px solid #f0f0f0",
-              boxShadow: "0 6px 16px rgba(0,0,0,0.08)"
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
             }}
           >
             <img
@@ -252,36 +249,44 @@ const BillingCard: React.FC = () => {
                 qrCodeUrl
               )}`}
               style={{
-                width: 200,
-                height: 200,
+                width: 180,
+                height: 180,
                 display: "block"
               }}
             />
           </div>
 
           {/* 提示 */}
-          <Stack spacing={0.5} sx={{ mt: 1.5 }}>
-            <Typography sx={{ fontSize: 12 }}>
-              请使用支付宝扫码支付
+          <Stack spacing={0.75} sx={{ mt: 2 }}>
+            <Typography sx={{ fontSize: 13, color: "#333" }}>
+              请使用支付宝扫码完成支付
             </Typography>
-            <Typography sx={{ fontSize: 11, color: "#52c41a" }}>
-              支付完成后自动跳转
+            <Typography sx={{ fontSize: 12, color: "#52c41a" }}>
+              支付完成后将自动跳转...
+            </Typography>
+            <Typography sx={{ fontSize: 12, color: "#bbb" }}>
+              关闭后可在订单列表继续支付
             </Typography>
           </Stack>
 
-          {/* 按钮 */}
+          {/* ✅ 按钮（最终版） */}
           <Button
-            variant="outlined"
+            variant="contained"
             color="error"
             sx={{
-              mt: 2,
-              height: 36,
+              mt: 3,
+              height: 38,
+              minWidth: 140,
+              paddingX: 3,
               borderRadius: 2,
-              fontSize: 13
+              fontWeight: 500,
+              "&:hover": {
+                backgroundColor: "#d32f2f"
+              }
             }}
             onClick={() => setOpen(false)}
           >
-            取消
+            取消支付
           </Button>
         </DialogContent>
       </Dialog>
