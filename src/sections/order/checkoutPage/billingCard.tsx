@@ -39,7 +39,6 @@ const BillingCard: React.FC = () => {
 
   const [open, setOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
-  const [qrLoaded, setQrLoaded] = useState(false);
 
   const isMobile = () =>
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -138,12 +137,10 @@ const BillingCard: React.FC = () => {
             } else {
               setQrCodeUrl(res);
               setOpen(true);
-              setQrLoaded(false);
             }
           } else if (res?.type === "qrcode") {
             setQrCodeUrl(res.data);
             setOpen(true);
-            setQrLoaded(false);
           } else {
             window.location.href = res?.data || "/";
           }
@@ -178,8 +175,8 @@ const BillingCard: React.FC = () => {
                 alignItems="center"
                 key={index}
               >
-                <Typography sx={{ fontSize: 15, lineHeight: 1.4 }}>{line.label}</Typography>
-                <Typography sx={{ fontSize: 20, fontWeight: 800, lineHeight: 1.4 }}>{line.value}</Typography>
+                <Typography sx={{ fontSize: 15, lineHeight: 1.35 }}>{line.label}</Typography>
+                <Typography sx={{ fontSize: 20, fontWeight: 800, lineHeight: 1.35 }}>{line.value}</Typography>
               </Stack>
             )
           )}
@@ -236,35 +233,31 @@ const BillingCard: React.FC = () => {
             {detailData?.plan?.name}
           </Typography>
 
-          {/* ✅ 二维码（比例优化 + Skeleton 占位） */}
-          <div
-            style={{
-              background: "#fafafa",
-              borderRadius: 16,
-              padding: 14,
-              display: "inline-block",
-              border: "1px solid #f0f0f0",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              minWidth: 180,
-              minHeight: 180
-            }}
-          >
-            {!qrLoaded && (
-              <Skeleton variant="rectangular" width={180} height={180} />
-            )}
-            <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                qrCodeUrl
-              )}`}
-              loading="lazy"
-              onLoad={() => setQrLoaded(true)}
+          {/* ✅ 二维码 */}
+          {qrCodeUrl && (
+            <div
               style={{
-                width: 180,
-                height: 180,
-                display: qrLoaded ? "block" : "none"
+                background: "#fafafa",
+                borderRadius: 16,
+                padding: 14,
+                display: "inline-block",
+                border: "1px solid #f0f0f0",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
               }}
-            />
-          </div>
+            >
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                  qrCodeUrl
+                )}`}
+                loading="lazy"
+                style={{
+                  width: 180,
+                  height: 180,
+                  display: "block"
+                }}
+              />
+            </div>
+          )}
 
           {/* 提示 */}
           <Stack spacing={0.8} sx={{ mt: 2 }}>
