@@ -175,8 +175,12 @@ const BillingCard: React.FC = () => {
                 alignItems="center"
                 key={index}
               >
-                <Typography sx={{ fontSize: 15, lineHeight: 1.35 }}>{line.label}</Typography>
-                <Typography sx={{ fontSize: 20, fontWeight: 800, lineHeight: 1.35 }}>{line.value}</Typography>
+                <Typography sx={{ fontSize: 15 }}>
+                  {line.label}
+                </Typography>
+                <Typography sx={{ fontSize: 20, fontWeight: 800 }}>
+                  {line.value}
+                </Typography>
               </Stack>
             )
           )}
@@ -200,7 +204,7 @@ const BillingCard: React.FC = () => {
         PaperProps={{
           style: {
             width: 340,
-            borderRadius: 4, // 🌟 边角改小
+            borderRadius: 4,
             backdropFilter: "blur(10px)",
             background: "rgba(255, 255, 255, 0.95)"
           }
@@ -221,76 +225,76 @@ const BillingCard: React.FC = () => {
             <CloseIcon />
           </IconButton>
 
-          <Typography sx={{ fontSize: 13, color: "#999", mb: 1, lineHeight: 1.3 }}>
-            扫码支付
-          </Typography>
+          <div style={{ maxWidth: 220, margin: "0 auto" }}>
+            <Typography sx={{ fontSize: 13, color: "#999", mb: 1 }}>
+              扫码支付
+            </Typography>
 
-          <Typography sx={{ fontSize: 38, fontWeight: 800, color: "#111", lineHeight: 1.3 }}>
-            ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
-          </Typography>
-
-          <Typography sx={{ fontSize: 14, color: "#555", mb: 2, lineHeight: 1.3 }}>
-            {detailData?.plan?.name}
-          </Typography>
-
-          {/* ✅ 二维码 */}
-          {qrCodeUrl && (
-            <div
-              style={{
-                background: "#fafafa",
-                borderRadius: 8, // 🌟 二维码容器圆角改小
-                padding: 14,
-                display: "inline-block",
-                border: "1px solid #f0f0f0",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+            {/* 💰 金额优化 */}
+            <Typography
+              sx={{
+                fontSize: 44,
+                fontWeight: 900,
+                color: "#111",
+                letterSpacing: 1,
+                lineHeight: 1.2
               }}
             >
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                  qrCodeUrl
-                )}`}
-                loading="lazy"
+              ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
+            </Typography>
+
+            <Typography sx={{ fontSize: 14, color: "#555", mb: 2 }}>
+              {detailData?.plan?.name}
+            </Typography>
+
+            {qrCodeUrl && (
+              <div
                 style={{
-                  width: 180,
-                  height: 180,
-                  display: "block"
+                  background: "#fafafa",
+                  borderRadius: 8,
+                  padding: 14,
+                  display: "inline-block",
+                  border: "1px solid #f0f0f0",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
                 }}
-              />
-            </div>
-          )}
+              >
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+                    qrCodeUrl
+                  )}`}
+                  style={{ width: 180, height: 180 }}
+                />
+              </div>
+            )}
 
-          {/* 提示 */}
-          <Stack spacing={0.8} sx={{ mt: 2 }}>
-            <Typography sx={{ fontSize: 14, color: "#333", lineHeight: 1.3 }}>
-              请使用支付宝扫码完成支付
-            </Typography>
-            <Typography sx={{ fontSize: 13, color: "#52c41a", lineHeight: 1.3 }}>
-              支付完成后将自动跳转...
-            </Typography>
-            <Typography sx={{ fontSize: 13, color: "#888", lineHeight: 1.3 }}>
-              关闭后可在订单列表继续支付
-            </Typography>
-          </Stack>
+            <Stack spacing={0.8} sx={{ mt: 2 }}>
+              <Typography sx={{ fontSize: 14, color: "#333" }}>
+                请使用支付宝扫码完成支付
+              </Typography>
+              <Typography sx={{ fontSize: 13, color: "#52c41a" }}>
+                支付完成后将自动跳转...
+              </Typography>
+              <Typography sx={{ fontSize: 13, color: "#888" }}>
+                关闭后可在订单列表继续支付
+              </Typography>
+            </Stack>
 
-          {/* ✅ 取消支付按钮 */}
-          <Button
-            variant="contained"
-            color="error"
-            sx={{
-              mt: 3,
-              height: 38,
-              minWidth: 140,
-              paddingX: 3,
-              borderRadius: 1, // 🌟 按钮圆角改小
-              fontWeight: 500,
-              "&:hover": {
-                backgroundColor: "#d32f2f"
-              }
-            }}
-            onClick={() => setOpen(false)}
-          >
-            取消支付
-          </Button>
+            {/* ✅ 宽度对齐按钮 */}
+            <Button
+              variant="contained"
+              color="error"
+              fullWidth
+              sx={{
+                mt: 3,
+                height: 38,
+                borderRadius: 1,
+                fontWeight: 500
+              }}
+              onClick={() => setOpen(false)}
+            >
+              取消支付
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>
