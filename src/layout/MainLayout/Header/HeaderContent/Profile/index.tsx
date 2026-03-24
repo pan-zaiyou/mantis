@@ -96,10 +96,14 @@ const Profile = () => {
     setOpen(false);
   };
 
-  // ✅ 统一头像生成逻辑（关键）
+  // ✅ Memoji风格头像（核心）
+  const seed = user?.email || "user";
+
   const avatarSrc =
     user?.avatar_url ||
-    `https://api.multiavatar.com/${encodeURIComponent(user?.email || "user")}.png`;
+    `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(
+      seed
+    )}&backgroundType=gradientLinear&radius=50`;
 
   return (
     <Box className={classes.root}>
@@ -113,7 +117,16 @@ const Profile = () => {
       >
         <Stack direction="row" spacing={2} className={classes.userInfo}>
           {/* ✅ 右上角头像 */}
-          <Avatar alt="profile user" src={avatarSrc} size="xs" />
+          <Avatar
+            alt="profile user"
+            src={avatarSrc}
+            size="xs"
+            onError={(e: any) => {
+              e.target.src = `https://api.dicebear.com/7.x/identicon/png?seed=${encodeURIComponent(
+                seed
+              )}`;
+            }}
+          />
           {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
         </Stack>
       </ButtonBase>
@@ -144,7 +157,16 @@ const Profile = () => {
                   <CardContent className={classes.cardContent}>
                     <Stack direction={"row"} className={classes.avatarStack} spacing={1}>
                       {/* ✅ 弹窗头像 */}
-                      <Avatar alt="profile user" src={avatarSrc} className={classes.userAvatar} />
+                      <Avatar
+                        alt="profile user"
+                        src={avatarSrc}
+                        className={classes.userAvatar}
+                        onError={(e: any) => {
+                          e.target.src = `https://api.dicebear.com/7.x/identicon/png?seed=${encodeURIComponent(
+                            seed
+                          )}`;
+                        }}
+                      />
                       <Stack className={classes.infoStack}>
                         <Typography variant="h6" noWrap>
                           {user?.email}
