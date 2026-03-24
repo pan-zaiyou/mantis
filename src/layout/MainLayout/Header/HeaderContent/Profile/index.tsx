@@ -24,6 +24,8 @@ import MenuList from "./MenuList";
 import { useGetUserInfoQuery } from "@/store/services/api";
 import { makeStyles } from "@/themes/hooks";
 
+// ==============================|| HEADER CONTENT - PROFILE ||============================== //
+
 const useStyles = makeStyles<{ open: boolean }>({
   name: "profile"
 })((theme, { open }) => ({
@@ -97,21 +99,19 @@ const Profile = () => {
 
   const seed = user?.email || "U";
 
-  // 生成稳定颜色（模拟 Apple 风）
-  const colors = [
-    "#6366f1",
-    "#8b5cf6",
-    "#06b6d4",
-    "#10b981",
-    "#f59e0b",
-    "#ef4444"
-  ];
+  // 生成图像风格的头像（SVG 格式）
+  const generatedAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+    seed
+  )}&background=random&color=fff&rounded=true&bold=true`;
 
-  const colorIndex = seed.charCodeAt(0) % colors.length;
-  const bgColor = colors[colorIndex];
+  // 判断后端头像是否有效
+  const isValidAvatar =
+    user?.avatar_url &&
+    typeof user.avatar_url === "string" &&
+    user.avatar_url.startsWith("http");
 
-  // 取首字母
-  const letter = seed.charAt(0).toUpperCase();
+  // 最终头像：如果没有有效的 avatar_url 使用生成的图像头像
+  const avatar = isValidAvatar ? user.avatar_url : generatedAvatar;
 
   // ==================== UI ==================== //
 
@@ -120,21 +120,21 @@ const Profile = () => {
       <ButtonBase
         className={classes.button}
         ref={anchorRef}
+        aria-label="open profile"
+        aria-controls={open ? "profile-grow" : undefined}
+        aria-haspopup="true"
         onClick={handleToggle}
       >
         <Stack direction="row" spacing={2} className={classes.userInfo}>
-          {/* ✅ 右上角头像（彻底不会失败） */}
+          {/* ✅ 右上角头像 */}
           <Avatar
+            alt="profile user"
+            src={avatar}
             size="xs"
-            sx={{
-              backgroundColor: bgColor,
-              color: "#fff",
-              fontWeight: 600
+            onError={(e: any) => {
+              e.target.src = generatedAvatar;
             }}
-          >
-            {letter}
-          </Avatar>
-
+          />
           {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
         </Stack>
       </ButtonBase>
@@ -143,7 +143,19 @@ const Profile = () => {
         placement="bottom-end"
         open={open}
         anchorEl={anchorRef.current}
+        role={"menu"}
         transition
+        disablePortal
+        popperOptions={{
+          modifiers: [
+            {
+              name: "offset",
+              options: {
+                offset: [0, 9]
+              }
+            }
+          ]
+        }}
       >
         {({ TransitionProps }) => (
           <Transitions type="fade" in={open} {...TransitionProps}>
@@ -154,16 +166,13 @@ const Profile = () => {
                     <Stack direction={"row"} className={classes.avatarStack} spacing={1}>
                       {/* ✅ 弹窗头像 */}
                       <Avatar
+                        alt="profile user"
+                        src={avatar}
                         className={classes.userAvatar}
-                        sx={{
-                          backgroundColor: bgColor,
-                          color: "#fff",
-                          fontWeight: 600
+                        onError={(e: any) => {
+                          e.target.src = generatedAvatar;
                         }}
-                      >
-                        {letter}
-                      </Avatar>
-
+                      />
                       <Stack className={classes.infoStack}>
                         <Typography variant="h6" noWrap>
                           {user?.email}
