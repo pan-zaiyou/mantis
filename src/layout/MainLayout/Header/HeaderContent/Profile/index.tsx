@@ -99,13 +99,19 @@ const Profile = () => {
 
   const seed = user?.email || "U";
 
-  // 生成图像风格的头像（SVG 格式）
+  // 生成 Apple 风拟人化头像（背景渐变色）
   const generatedAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     seed
   )}&background=random&color=fff&rounded=true&bold=true`;
 
-  // 强制使用自定义头像生成器（忽略后端返回的 avatar_url）
-  const avatar = generatedAvatar;
+  // 判断后端头像是否有效
+  const isValidAvatar =
+    user?.avatar_url &&
+    typeof user.avatar_url === "string" &&
+    user.avatar_url.startsWith("http");
+
+  // 最终头像：如果没有有效的 avatar_url 使用生成的图像头像
+  const avatar = isValidAvatar ? user.avatar_url : generatedAvatar;
 
   // ==================== UI ==================== //
 
