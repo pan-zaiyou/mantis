@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useMemo } from "react";
 
 // material-ui
 import { styled, useTheme, Theme } from "@mui/material/styles";
@@ -134,9 +134,23 @@ export default function Avatar({
 }: Props) {
   const theme = useTheme();
 
+  // ✅ 使用 children（一般是邮箱）作为 seed
+  const seed = children?.toString() || "default-user";
+
+  // ✅ multiavatar（固定头像）
+  const avatar = useMemo(() => {
+    return `https://api.multiavatar.com/${encodeURIComponent(seed)}.png`;
+  }, [seed]);
+
   return (
-    <AvatarStyle variant={variant} theme={theme} color={color} type={type} size={size} {...others}>
-      {children}
-    </AvatarStyle>
+    <AvatarStyle
+      variant={variant}
+      theme={theme}
+      color={color}
+      type={type}
+      size={size}
+      src={others.src || avatar} // ✅ 有自定义头像优先，没有就用生成的
+      {...others}
+    />
   );
 }
