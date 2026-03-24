@@ -40,8 +40,39 @@ const BillingCard: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState("");
 
+  // ⏱ 倒计时
+  const [timeLeft, setTimeLeft] = useState(300);
+
+  // 💰 支付状态
+  const [payStatus, setPayStatus] = useState<"pending" | "success">("pending");
+
   const isMobile = () =>
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  // ⏱ 倒计时逻辑
+  useEffect(() => {
+    if (!open) return;
+
+    setTimeLeft(300);
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [open]);
+
+  const formatTime = (sec: number) => {
+    const m = String(Math.floor(sec / 60)).padStart(2, "0");
+    const s = String(sec % 60).padStart(2, "0");
+    return `${m}:${s}`;
+  };
 
   // 🚀 支付状态检测
   useEffect(() => {
@@ -55,12 +86,12 @@ const BillingCard: React.FC = () => {
         const data = await res.json();
 
         if (data?.data?.status === 1) {
-          setOpen(false);
-          enqueueSnackbar("支付成功 🎉", { variant: "success" });
+          setPayStatus("success");
 
           setTimeout(() => {
+            setOpen(false);
             window.location.href = `/order/${detailData.trade_no}`;
-          }, 800);
+          }, 1200);
         }
       } catch (err) {
         console.error("检测支付状态失败", err);
@@ -68,9 +99,16 @@ const BillingCard: React.FC = () => {
     };
 
     check();
-    const timer = setInterval(check, 1000);
+    const timer = setInterval(check, 1200);
     return () => clearInterval(timer);
   }, [open, detailData]);
+
+  // ⏱ 过期自动刷新二维码
+  useEffect(() => {
+    if (timeLeft === 0 && detailData && paymentMethodState) {
+      handleClick(new Event("refresh") as any);
+    }
+  }, [timeLeft]);
 
   const lines = useMemo(
     () => [
@@ -112,12 +150,13 @@ const BillingCard: React.FC = () => {
   );
 
   const handleClick = useCallback(
-    async (e: React.MouseEvent | React.TouchEvent) => {
-      e.preventDefault();
+    async (e: any) => {
+      e?.preventDefault?.();
 
       if (detailData && paymentMethodState) {
         try {
           setSubmitting(true);
+          setPayStatus("pending");
 
           ReactGA.event("click", {
             category: "order",
@@ -145,17 +184,12 @@ const BillingCard: React.FC = () => {
             window.location.href = res?.data || "/";
           }
         } catch (err) {
-          console.error(err);
           enqueueSnackbar(t("notice::checkout-failed"), {
             variant: "error"
           });
         } finally {
           setSubmitting(false);
         }
-      } else {
-        enqueueSnackbar(t("notice::data-not-loaded"), {
-          variant: "error"
-        });
       }
     },
     [checkoutOrder, detailData, paymentMethodState]
@@ -172,15 +206,10 @@ const BillingCard: React.FC = () => {
               <Stack
                 direction="row"
                 justifyContent="space-between"
-                alignItems="center"
                 key={index}
               >
-                <Typography sx={{ fontSize: 15 }}>
-                  {line.label}
-                </Typography>
-                <Typography sx={{ fontSize: 20, fontWeight: 800 }}>
-                  {line.value}
-                </Typography>
+                <Typography>{line.label}</Typography>
+                <Typography fontWeight={800}>{line.value}</Typography>
               </Stack>
             )
           )}
@@ -196,28 +225,26 @@ const BillingCard: React.FC = () => {
         </Stack>
       </MainCard>
 
-      {/* 💎 支付弹窗 */}
+      {/* 💎 终极支付弹窗 */}
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
         maxWidth="xs"
         PaperProps={{
           style: {
-            width: 340,
-            borderRadius: 4,
-            backdropFilter: "blur(10px)",
-            background: "rgba(255, 255, 255, 0.95)"
+            width: 360,
+            borderRadius: 14,
+            background: "#f6f7fb"
           }
         }}
       >
         <DialogContent
           style={{
-            padding: "24px 20px",
+            padding: "20px 18px 24px",
             textAlign: "center",
             position: "relative"
           }}
         >
-          {/* 关闭 */}
           <IconButton
             onClick={() => setOpen(false)}
             style={{ position: "absolute", right: 10, top: 10 }}
@@ -225,76 +252,99 @@ const BillingCard: React.FC = () => {
             <CloseIcon />
           </IconButton>
 
-          <div style={{ maxWidth: 220, margin: "0 auto" }}>
-            <Typography sx={{ fontSize: 13, color: "#999", mb: 1 }}>
-              扫码支付
-            </Typography>
+          {payStatus === "success" ? (
+            <>
+              <Typography sx={{ fontSize: 20, fontWeight: 700, mt: 2 }}>
+                支付成功
+              </Typography>
 
-            {/* 💰 金额优化 */}
-            <Typography
-              sx={{
-                fontSize: 44,
-                fontWeight: 900,
-                color: "#111",
-                letterSpacing: 1,
-                lineHeight: 1.2
-              }}
-            >
-              ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
-            </Typography>
+              <Typography sx={{ fontSize: 60, color: "#22c55e", mt: 2 }}>
+                ✔
+              </Typography>
 
-            <Typography sx={{ fontSize: 14, color: "#555", mb: 2 }}>
-              {detailData?.plan?.name}
-            </Typography>
+              <Typography sx={{ mt: 2, color: "#666" }}>
+                正在跳转订单页面...
+              </Typography>
+            </>
+          ) : (
+            <>
+              <Typography sx={{ fontSize: 18, fontWeight: 600 }}>
+                扫码支付
+              </Typography>
 
-            {qrCodeUrl && (
-              <div
-                style={{
-                  background: "#fafafa",
-                  borderRadius: 8,
-                  padding: 14,
-                  display: "inline-block",
-                  border: "1px solid #f0f0f0",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+              <Typography
+                sx={{
+                  fontSize: 50,
+                  fontWeight: 900,
+                  mt: 2
                 }}
               >
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                    qrCodeUrl
-                  )}`}
-                  style={{ width: 180, height: 180 }}
-                />
-              </div>
-            )}
+                ¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
+              </Typography>
 
-            <Stack spacing={0.8} sx={{ mt: 2 }}>
-              <Typography sx={{ fontSize: 14, color: "#333" }}>
-                请使用支付宝扫码完成支付
+              <Typography sx={{ color: "#888", mb: 2 }}>
+                {detailData?.plan?.name}
               </Typography>
-              <Typography sx={{ fontSize: 13, color: "#52c41a" }}>
-                支付完成后将自动跳转...
-              </Typography>
-              <Typography sx={{ fontSize: 13, color: "#888" }}>
-                关闭后可在订单列表继续支付
-              </Typography>
-            </Stack>
 
-            {/* ✅ 宽度对齐按钮 */}
-            <Button
-              variant="contained"
-              color="error"
-              fullWidth
-              sx={{
-                mt: 3,
-                height: 38,
-                borderRadius: 1,
-                fontWeight: 500
-              }}
-              onClick={() => setOpen(false)}
-            >
-              取消支付
-            </Button>
-          </div>
+              {qrCodeUrl && (
+                <div
+                  style={{
+                    background: "#fff",
+                    borderRadius: 14,
+                    padding: 14,
+                    display: "inline-block",
+                    boxShadow: "0 8px 30px rgba(0,0,0,0.08)"
+                  }}
+                >
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
+                      qrCodeUrl
+                    )}`}
+                    style={{ width: 200, height: 200 }}
+                  />
+                </div>
+              )}
+
+              <Typography sx={{ mt: 2 }}>
+                请使用支付宝扫码支付
+              </Typography>
+
+              <Typography sx={{ fontSize: 13, color: "#999", mt: 1 }}>
+                订单号：{detailData?.trade_no}
+              </Typography>
+
+              <Typography sx={{ fontSize: 13, color: "#999" }}>
+                支付金额：¥{((detailData?.total_amount ?? 0) / 100).toFixed(2)}
+              </Typography>
+
+              <Typography
+                sx={{
+                  color: "#ff4d4f",
+                  fontWeight: 600,
+                  mt: 1
+                }}
+              >
+                请在 {formatTime(timeLeft)} 内完成支付
+              </Typography>
+
+              <Typography sx={{ color: "#22c55e", mt: 1 }}>
+                安全支付保障中
+              </Typography>
+
+              <Button
+                fullWidth
+                sx={{
+                  mt: 3,
+                  height: 44,
+                  borderRadius: 2,
+                  background: "#e5e7eb"
+                }}
+                onClick={() => setOpen(false)}
+              >
+                取消支付
+              </Button>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </>
