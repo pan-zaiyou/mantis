@@ -96,15 +96,6 @@ const Profile = () => {
     setOpen(false);
   };
 
-  // ✅ Memoji风格头像（核心）
-  const seed = user?.email || "user";
-
-  const avatarSrc =
-    user?.avatar_url ||
-    `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(
-      seed
-    )}&backgroundType=gradientLinear&radius=50`;
-
   return (
     <Box className={classes.root}>
       <ButtonBase
@@ -116,21 +107,10 @@ const Profile = () => {
         onClick={handleToggle}
       >
         <Stack direction="row" spacing={2} className={classes.userInfo}>
-          {/* ✅ 右上角头像 */}
-          <Avatar
-            alt="profile user"
-            src={avatarSrc}
-            size="xs"
-            onError={(e: any) => {
-              e.target.src = `https://api.dicebear.com/7.x/identicon/png?seed=${encodeURIComponent(
-                seed
-              )}`;
-            }}
-          />
+          <Avatar alt="profile user" src={user?.avatar_url} size="xs" />
           {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
         </Stack>
       </ButtonBase>
-
       <Popper
         placement="bottom-end"
         open={open}
@@ -156,17 +136,7 @@ const Profile = () => {
                 <MainCard elevation={0} border={false} content={false}>
                   <CardContent className={classes.cardContent}>
                     <Stack direction={"row"} className={classes.avatarStack} spacing={1}>
-                      {/* ✅ 弹窗头像 */}
-                      <Avatar
-                        alt="profile user"
-                        src={avatarSrc}
-                        className={classes.userAvatar}
-                        onError={(e: any) => {
-                          e.target.src = `https://api.dicebear.com/7.x/identicon/png?seed=${encodeURIComponent(
-                            seed
-                          )}`;
-                        }}
-                      />
+                      <Avatar alt="profile user" src={user?.avatar_url} className={classes.userAvatar} />
                       <Stack className={classes.infoStack}>
                         <Typography variant="h6" noWrap>
                           {user?.email}
