@@ -81,13 +81,12 @@ const Profile = () => {
 
   const anchorRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
+
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
 
-  const { classes } = useStyles({
-    open
-  });
+  const { classes } = useStyles({ open });
 
   const handleClose = (event: MouseEvent | TouchEvent) => {
     if (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) {
@@ -95,6 +94,26 @@ const Profile = () => {
     }
     setOpen(false);
   };
+
+  // ==================== 核心头像逻辑（无需安装依赖） ==================== //
+
+  const seed = user?.email || "U";
+
+  // 判断后端头像是否有效
+  const isValidAvatar =
+    user?.avatar_url &&
+    typeof user.avatar_url === "string" &&
+    user.avatar_url.startsWith("http");
+
+  // 生成头像（稳定，不会被墙）
+  const generatedAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+    seed
+  )}&background=random&color=fff&rounded=true&bold=true`;
+
+  // 最终头像
+  const avatar = isValidAvatar ? user.avatar_url : generatedAvatar;
+
+  // ==================== UI ==================== //
 
   return (
     <Box className={classes.root}>
@@ -107,10 +126,19 @@ const Profile = () => {
         onClick={handleToggle}
       >
         <Stack direction="row" spacing={2} className={classes.userInfo}>
-          <Avatar alt="profile user" src={user?.avatar_url} size="xs" />
+          {/* ✅ 右上角头像 */}
+          <Avatar
+            alt="profile user"
+            src={avatar}
+            size="xs"
+            onError={(e: any) => {
+              e.target.src = generatedAvatar;
+            }}
+          />
           {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
         </Stack>
       </ButtonBase>
+
       <Popper
         placement="bottom-end"
         open={open}
@@ -136,7 +164,15 @@ const Profile = () => {
                 <MainCard elevation={0} border={false} content={false}>
                   <CardContent className={classes.cardContent}>
                     <Stack direction={"row"} className={classes.avatarStack} spacing={1}>
-                      <Avatar alt="profile user" src={user?.avatar_url} className={classes.userAvatar} />
+                      {/* ✅ 弹窗头像 */}
+                      <Avatar
+                        alt="profile user"
+                        src={avatar}
+                        className={classes.userAvatar}
+                        onError={(e: any) => {
+                          e.target.src = generatedAvatar;
+                        }}
+                      />
                       <Stack className={classes.infoStack}>
                         <Typography variant="h6" noWrap>
                           {user?.email}
