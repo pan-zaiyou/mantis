@@ -96,6 +96,11 @@ const Profile = () => {
     setOpen(false);
   };
 
+  // ✅ 统一头像生成逻辑（关键）
+  const avatarSrc =
+    user?.avatar_url ||
+    `https://api.multiavatar.com/${encodeURIComponent(user?.email || "user")}.png`;
+
   return (
     <Box className={classes.root}>
       <ButtonBase
@@ -107,10 +112,12 @@ const Profile = () => {
         onClick={handleToggle}
       >
         <Stack direction="row" spacing={2} className={classes.userInfo}>
-          <Avatar alt="profile user" src={user?.avatar_url} size="xs" />
+          {/* ✅ 右上角头像 */}
+          <Avatar alt="profile user" src={avatarSrc} size="xs" />
           {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
         </Stack>
       </ButtonBase>
+
       <Popper
         placement="bottom-end"
         open={open}
@@ -136,7 +143,8 @@ const Profile = () => {
                 <MainCard elevation={0} border={false} content={false}>
                   <CardContent className={classes.cardContent}>
                     <Stack direction={"row"} className={classes.avatarStack} spacing={1}>
-                      <Avatar alt="profile user" src={user?.avatar_url} className={classes.userAvatar} />
+                      {/* ✅ 弹窗头像 */}
+                      <Avatar alt="profile user" src={avatarSrc} className={classes.userAvatar} />
                       <Stack className={classes.infoStack}>
                         <Typography variant="h6" noWrap>
                           {user?.email}
