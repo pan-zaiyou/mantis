@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 // material-ui
@@ -95,9 +95,7 @@ const Profile = () => {
     setOpen(false);
   };
 
-  // ==================== 头像加载状态 ==================== //
-
-  const [avatarLoaded, setAvatarLoaded] = useState(false);
+  // ==================== 强制生成头像 ==================== //
 
   const seed = user?.email || "user";
 
@@ -106,24 +104,8 @@ const Profile = () => {
     seed
   )}&backgroundType=gradientLinear&radius=50`;
 
-  // 判断后端头像是否有效
-  const isValidAvatar =
-    user?.avatar_url &&
-    typeof user.avatar_url === "string" &&
-    user.avatar_url.startsWith("http");
-
-  // 最终头像：如果没有有效的 avatar_url 使用生成的图像头像
-  const avatar = isValidAvatar ? user.avatar_url : generatedAvatar;
-
-  // ==================== 头像加载完成处理 ==================== //
-
-  const handleImageLoad = () => {
-    setAvatarLoaded(true);
-  };
-
-  const handleImageError = () => {
-    setAvatarLoaded(false);
-  };
+  // **强制不使用后端头像**，直接使用生成头像
+  const avatar = generatedAvatar;
 
   // ==================== UI ==================== //
 
@@ -143,8 +125,9 @@ const Profile = () => {
             alt="profile user"
             src={avatar}
             size="xs"
-            onError={handleImageError}
-            onLoad={handleImageLoad}
+            onError={(e: any) => {
+              e.target.src = generatedAvatar;
+            }}
           />
           {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
         </Stack>
@@ -180,8 +163,9 @@ const Profile = () => {
                         alt="profile user"
                         src={avatar}
                         className={classes.userAvatar}
-                        onError={handleImageError}
-                        onLoad={handleImageLoad}
+                        onError={(e: any) => {
+                          e.target.src = generatedAvatar;
+                        }}
                       />
                       <Stack className={classes.infoStack}>
                         <Typography variant="h6" noWrap>
