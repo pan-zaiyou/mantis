@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 // material-ui
@@ -95,16 +95,17 @@ const Profile = () => {
     setOpen(false);
   };
 
-  // ==================== 强制生成头像 ==================== //
+  // ==================== 随机化头像 ==================== //
 
   const seed = user?.email || "user";
 
-  // 使用 DiceBear 生成拟人化头像（Apple 风）
+  // 使用随机数加邮箱生成唯一的种子，确保每次刷新头像都不同
+  const randomSeed = `${seed}-${Math.random()}`;
+
   const generatedAvatar = `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(
-    seed
+    randomSeed
   )}&backgroundType=gradientLinear&radius=50`;
 
-  // **强制不使用后端头像**，直接使用生成头像
   const avatar = generatedAvatar;
 
   // ==================== UI ==================== //
