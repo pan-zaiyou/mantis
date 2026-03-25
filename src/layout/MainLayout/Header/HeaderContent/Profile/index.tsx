@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 // material-ui
@@ -26,8 +26,6 @@ import { makeStyles } from "@/themes/hooks";
 
 // ✅ Multiavatar
 import multiavatar from "@multiavatar/multiavatar/esm";
-
-// ==============================|| HEADER CONTENT - PROFILE ||============================== //
 
 const useStyles = makeStyles<{ open: boolean }>({
   name: "profile"
@@ -101,8 +99,24 @@ const Profile = () => {
     setOpen(false);
   };
 
-  // ==================== Multiavatar 本地头像（强制使用） ==================== //
-  const seed = user?.email || "user";
+  // ==================== 🚀 缓存优化核心 ==================== //
+
+  const STORAGE_KEY = "avatar_seed";
+
+  // 👉 初始 seed（优先用缓存）
+  const [seed, setSeed] = useState<string>(() => {
+    return localStorage.getItem(STORAGE_KEY) || "guest";
+  });
+
+  // 👉 user回来后更新 seed
+  useEffect(() => {
+    if (user?.email) {
+      setSeed(user.email);
+      localStorage.setItem(STORAGE_KEY, user.email);
+    }
+  }, [user]);
+
+  // 👉 根据 seed 生成头像（永远有）
   const avatarSvg = multiavatar(seed);
 
   // ==================== UI ==================== //
@@ -118,7 +132,7 @@ const Profile = () => {
         onClick={handleToggle}
       >
         <Stack direction="row" spacing={2} className={classes.userInfo}>
-          {/* ✅ 右上角头像（强制 Multiavatar） */}
+          {/* ✅ 顶部头像（秒开 + 不闪） */}
           <Avatar size="xs">
             <div
               dangerouslySetInnerHTML={{ __html: avatarSvg }}
@@ -160,7 +174,7 @@ const Profile = () => {
                 <MainCard elevation={0} border={false} content={false}>
                   <CardContent className={classes.cardContent}>
                     <Stack direction={"row"} className={classes.avatarStack} spacing={1}>
-                      {/* ✅ 弹窗头像（强制 Multiavatar） */}
+                      {/* ✅ 弹窗头像 */}
                       <Avatar className={classes.userAvatar}>
                         <div
                           dangerouslySetInnerHTML={{ __html: avatarSvg }}
