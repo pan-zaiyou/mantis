@@ -98,15 +98,12 @@ const Profile = () => {
     setOpen(false);
   };
 
-  // ==================== Multiavatar 头像 ==================== //
+  // ==================== Multiavatar（PNG稳定版） ==================== //
 
   const seed = user?.email || "user";
 
-  // 使用 Multiavatar（更好看的卡通头像）
-  const generatedAvatar = `https://api.multiavatar.com/${encodeURIComponent(seed)}.svg`;
-
-  // 强制使用生成头像
-  const avatar = generatedAvatar;
+  // ✅ 使用 PNG（解决你现在不显示问题）
+  const avatar = `https://api.multiavatar.com/${encodeURIComponent(seed)}.png`;
 
   // ==================== UI ==================== //
 
@@ -130,8 +127,11 @@ const Profile = () => {
               border: "2px solid",
               borderColor: "divider"
             }}
+            imgProps={{
+              referrerPolicy: "no-referrer"
+            }}
             onError={(e: any) => {
-              e.target.src = `https://api.multiavatar.com/default.svg`;
+              e.target.src = `https://api.multiavatar.com/default.png`;
             }}
           />
           {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
@@ -168,8 +168,11 @@ const Profile = () => {
                         alt="profile user"
                         src={avatar}
                         className={classes.userAvatar}
+                        imgProps={{
+                          referrerPolicy: "no-referrer"
+                        }}
                         onError={(e: any) => {
-                          e.target.src = `https://api.multiavatar.com/default.svg`;
+                          e.target.src = `https://api.multiavatar.com/default.png`;
                         }}
                       />
                       <Stack className={classes.infoStack}>
