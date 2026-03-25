@@ -38,7 +38,10 @@ const useStyles = makeStyles<{ open: boolean }>({
     },
     borderRadius: theme.shape.borderRadius,
     "&:hover": {
-      backgroundColor: theme.palette.mode === "dark" ? theme.palette.secondary.light : theme.palette.secondary.lighter
+      backgroundColor:
+        theme.palette.mode === "dark"
+          ? theme.palette.secondary.light
+          : theme.palette.secondary.lighter
     },
     "&:focus-visible": {
       outline: `2px solid ${theme.palette.secondary.dark}`,
@@ -95,16 +98,14 @@ const Profile = () => {
     setOpen(false);
   };
 
-  // ==================== 强制生成头像 ==================== //
+  // ==================== Multiavatar 头像 ==================== //
 
   const seed = user?.email || "user";
 
-  // 使用 DiceBear 生成拟人化头像（Apple 风）
-  const generatedAvatar = `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(
-    seed
-  )}&backgroundType=gradientLinear&radius=50`;
+  // 使用 Multiavatar（更好看的卡通头像）
+  const generatedAvatar = `https://api.multiavatar.com/${encodeURIComponent(seed)}.svg`;
 
-  // **强制不使用后端头像**，直接使用生成头像
+  // 强制使用生成头像
   const avatar = generatedAvatar;
 
   // ==================== UI ==================== //
@@ -120,13 +121,17 @@ const Profile = () => {
         onClick={handleToggle}
       >
         <Stack direction="row" spacing={2} className={classes.userInfo}>
-          {/* ✅ 右上角头像 */}
+          {/* 右上角头像 */}
           <Avatar
             alt="profile user"
             src={avatar}
             size="xs"
+            sx={{
+              border: "2px solid",
+              borderColor: "divider"
+            }}
             onError={(e: any) => {
-              e.target.src = generatedAvatar;
+              e.target.src = `https://api.multiavatar.com/default.svg`;
             }}
           />
           {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
@@ -158,13 +163,13 @@ const Profile = () => {
                 <MainCard elevation={0} border={false} content={false}>
                   <CardContent className={classes.cardContent}>
                     <Stack direction={"row"} className={classes.avatarStack} spacing={1}>
-                      {/* ✅ 弹窗头像 */}
+                      {/* 弹窗头像 */}
                       <Avatar
                         alt="profile user"
                         src={avatar}
                         className={classes.userAvatar}
                         onError={(e: any) => {
-                          e.target.src = generatedAvatar;
+                          e.target.src = `https://api.multiavatar.com/default.svg`;
                         }}
                       />
                       <Stack className={classes.infoStack}>
