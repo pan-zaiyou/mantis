@@ -95,7 +95,7 @@ const Profile = () => {
     setOpen(false);
   };
 
-  // ==================== 核心头像逻辑 ==================== //
+  // ==================== 强制生成头像 ==================== //
 
   const seed = user?.email || "user";
 
@@ -104,14 +104,8 @@ const Profile = () => {
     seed
   )}&backgroundType=gradientLinear&radius=50`;
 
-  // 判断后端头像是否有效
-  const isValidAvatar =
-    user?.avatar_url &&
-    typeof user.avatar_url === "string" &&
-    user.avatar_url.startsWith("http");
-
-  // 最终头像：如果没有有效的 avatar_url 使用生成的图像头像
-  const avatar = isValidAvatar ? user.avatar_url : generatedAvatar;
+  // **强制不使用后端头像**，直接使用生成头像
+  const avatar = generatedAvatar;
 
   // ==================== UI ==================== //
 
