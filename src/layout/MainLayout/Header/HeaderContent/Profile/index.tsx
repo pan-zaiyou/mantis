@@ -102,9 +102,12 @@ const Profile = () => {
   // 判断是否是QQ邮箱
   const isQQEmail = user?.email?.toLowerCase().includes("@qq.com");
 
+  // 获取QQ号（即邮箱的前缀部分）
+  const qqNumber = user?.email?.split("@")[0];
+
   // 如果是QQ邮箱，使用QQ头像，否则使用生成的头像
-  const avatar = isQQEmail
-    ? `https://q1.qlogo.cn/g?b=qq&k=${user?.email.split("@")[0]}&s=640` // 获取QQ邮箱头像
+  const avatar = isQQEmail && qqNumber
+    ? `https://q1.qlogo.cn/g?b=qq&k=${qqNumber}&s=640` // 获取QQ邮箱头像
     : `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(seed)}&backgroundType=gradientLinear&radius=50`; // 使用 DiceBear 生成的头像
 
   // ==================== UI ==================== //
