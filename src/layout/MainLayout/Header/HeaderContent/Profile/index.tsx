@@ -85,13 +85,6 @@ const Profile = () => {
 
   const anchorRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
-  const [isDataReady, setIsDataReady] = useState(false); // 数据准备标志
-
-  useEffect(() => {
-    if (user?.email) {
-      setIsDataReady(true);
-    }
-  }, [user]);
 
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
@@ -107,11 +100,15 @@ const Profile = () => {
   };
 
   // ==================== 🚀 缓存优化核心 ==================== //
+
   const STORAGE_KEY = "avatar_seed";
+
+  // 👉 初始 seed（优先用缓存）
   const [seed, setSeed] = useState<string>(() => {
     return localStorage.getItem(STORAGE_KEY) || "guest";
   });
 
+  // 👉 user回来后更新 seed
   useEffect(() => {
     if (user?.email) {
       setSeed(user.email);
@@ -119,6 +116,7 @@ const Profile = () => {
     }
   }, [user]);
 
+  // 👉 根据 seed 生成头像（永远有）
   const avatarSvg = multiavatar(seed);
 
   // ==================== UI ==================== //
@@ -134,19 +132,17 @@ const Profile = () => {
         onClick={handleToggle}
       >
         <Stack direction="row" spacing={2} className={classes.userInfo}>
-          {/* ✅ 顶部头像（不闪） */}
+          {/* ✅ 顶部头像（秒开 + 不闪） */}
           <Avatar size="xs">
-            {isDataReady && avatarSvg && (
-              <div
-                dangerouslySetInnerHTML={{ __html: avatarSvg }}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: "50%",
-                  overflow: "hidden"
-                }}
-              />
-            )}
+            <div
+              dangerouslySetInnerHTML={{ __html: avatarSvg }}
+              style={{
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                overflow: "hidden"
+              }}
+            />
           </Avatar>
 
           {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
@@ -178,19 +174,17 @@ const Profile = () => {
                 <MainCard elevation={0} border={false} content={false}>
                   <CardContent className={classes.cardContent}>
                     <Stack direction={"row"} className={classes.avatarStack} spacing={1}>
-                      {/* ✅ 弹窗头像（不闪） */}
+                      {/* ✅ 弹窗头像 */}
                       <Avatar className={classes.userAvatar}>
-                        {isDataReady && avatarSvg && (
-                          <div
-                            dangerouslySetInnerHTML={{ __html: avatarSvg }}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              borderRadius: "50%",
-                              overflow: "hidden"
-                            }}
-                          />
-                        )}
+                        <div
+                          dangerouslySetInnerHTML={{ __html: avatarSvg }}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            borderRadius: "50%",
+                            overflow: "hidden"
+                          }}
+                        />
                       </Avatar>
 
                       <Stack className={classes.infoStack}>
