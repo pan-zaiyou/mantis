@@ -16,7 +16,7 @@ import {
   useMediaQuery
 } from "@mui/material";
 
-// project import
+// 项目组件
 import Avatar from "@/components/@extended/Avatar";
 import MainCard from "@/components/MainCard";
 import Transitions from "@/components/@extended/Transitions";
@@ -24,7 +24,7 @@ import MenuList from "./MenuList";
 import { useGetUserInfoQuery } from "@/store/services/api";
 import { makeStyles } from "@/themes/hooks";
 
-// ==============================|| HEADER CONTENT - PROFILE ||============================== //
+// ==============================|| 头部内容 - 个人资料 ||============================== //
 
 const useStyles = makeStyles<{ open: boolean }>({
   name: "profile"
@@ -95,17 +95,17 @@ const Profile = () => {
     setOpen(false);
   };
 
-  // ==================== 强制生成头像 ==================== //
+  // ==================== 获取头像逻辑 ==================== //
 
   const seed = user?.email || "user";
 
-  // 使用 DiceBear 生成拟人化头像（Apple 风）
-  const generatedAvatar = `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(
-    seed
-  )}&backgroundType=gradientLinear&radius=50`;
+  // 判断是否是QQ邮箱
+  const isQQEmail = user?.email?.toLowerCase().includes("@qq.com");
 
-  // **强制不使用后端头像**，直接使用生成头像
-  const avatar = generatedAvatar;
+  // 如果是QQ邮箱，使用QQ头像，否则使用生成的头像
+  const avatar = isQQEmail
+    ? `https://q1.qlogo.cn/g?b=qq&k=${user?.email.split("@")[0]}&s=640` // 获取QQ邮箱头像
+    : `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(seed)}&backgroundType=gradientLinear&radius=50`; // 使用 DiceBear 生成的头像
 
   // ==================== UI ==================== //
 
@@ -126,7 +126,7 @@ const Profile = () => {
             src={avatar}
             size="xs"
             onError={(e: any) => {
-              e.target.src = generatedAvatar;
+              e.target.src = avatar; // 如果头像加载失败，使用默认头像
             }}
           />
           {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
@@ -164,7 +164,7 @@ const Profile = () => {
                         src={avatar}
                         className={classes.userAvatar}
                         onError={(e: any) => {
-                          e.target.src = generatedAvatar;
+                          e.target.src = avatar; // 如果头像加载失败，使用默认头像
                         }}
                       />
                       <Stack className={classes.infoStack}>
