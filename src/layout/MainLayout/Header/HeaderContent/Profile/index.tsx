@@ -16,7 +16,7 @@ import {
   useMediaQuery
 } from "@mui/material";
 
-// 项目组件
+// project import
 import Avatar from "@/components/@extended/Avatar";
 import MainCard from "@/components/MainCard";
 import Transitions from "@/components/@extended/Transitions";
@@ -24,7 +24,7 @@ import MenuList from "./MenuList";
 import { useGetUserInfoQuery } from "@/store/services/api";
 import { makeStyles } from "@/themes/hooks";
 
-// ==============================|| 头部内容 - 个人资料 ||============================== //
+// ==============================|| HEADER CONTENT - PROFILE ||============================== //
 
 const useStyles = makeStyles<{ open: boolean }>({
   name: "profile"
@@ -81,13 +81,12 @@ const Profile = () => {
 
   const anchorRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
+
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
 
-  const { classes } = useStyles({
-    open
-  });
+  const { classes } = useStyles({ open });
 
   const handleClose = (event: MouseEvent | TouchEvent) => {
     if (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) {
@@ -96,15 +95,19 @@ const Profile = () => {
     setOpen(false);
   };
 
-  // 获取头像逻辑
-  const seed = user?.email || "user";
-  const isQQEmail = user?.email?.toLowerCase().includes("@qq.com");  // 判断是否是QQ邮箱
+  // ==================== 强制生成头像 ==================== //
 
-  // 如果是QQ邮箱，使用QQ头像（提取QQ号）
-  const qqNumber = user?.email?.split("@")[0];
-  const avatar = isQQEmail && qqNumber && /^\d+$/.test(qqNumber)
-    ? `https://q1.qlogo.cn/g?b=qq&k=${qqNumber}&s=640` // 获取QQ头像
-    : user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(seed)}&backgroundType=gradientLinear&radius=50`;  // 如果不是QQ邮箱，使用后台头像或者默认头像
+  const seed = user?.email || "user";
+
+  // 使用 DiceBear 生成拟人化头像（Apple 风）
+  const generatedAvatar = `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(
+    seed
+  )}&backgroundType=gradientLinear&radius=50`;
+
+  // **强制不使用后端头像**，直接使用生成头像
+  const avatar = generatedAvatar;
+
+  // ==================== UI ==================== //
 
   return (
     <Box className={classes.root}>
@@ -117,8 +120,15 @@ const Profile = () => {
         onClick={handleToggle}
       >
         <Stack direction="row" spacing={2} className={classes.userInfo}>
-          {/* 右上角头像 */}
-          <Avatar alt="profile user" src={avatar} size="xs" />
+          {/* ✅ 右上角头像 */}
+          <Avatar
+            alt="profile user"
+            src={avatar}
+            size="xs"
+            onError={(e: any) => {
+              e.target.src = generatedAvatar;
+            }}
+          />
           {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
         </Stack>
       </ButtonBase>
@@ -148,8 +158,15 @@ const Profile = () => {
                 <MainCard elevation={0} border={false} content={false}>
                   <CardContent className={classes.cardContent}>
                     <Stack direction={"row"} className={classes.avatarStack} spacing={1}>
-                      {/* 弹窗头像 */}
-                      <Avatar alt="profile user" src={avatar} className={classes.userAvatar} />
+                      {/* ✅ 弹窗头像 */}
+                      <Avatar
+                        alt="profile user"
+                        src={avatar}
+                        className={classes.userAvatar}
+                        onError={(e: any) => {
+                          e.target.src = generatedAvatar;
+                        }}
+                      />
                       <Stack className={classes.infoStack}>
                         <Typography variant="h6" noWrap>
                           {user?.email}
