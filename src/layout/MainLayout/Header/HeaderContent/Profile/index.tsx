@@ -13,8 +13,7 @@ import {
   Popper,
   Stack,
   Typography,
-  useMediaQuery,
-  Skeleton
+  useMediaQuery
 } from "@mui/material";
 
 // project import
@@ -25,24 +24,7 @@ import MenuList from "./MenuList";
 import { useGetUserInfoQuery } from "@/store/services/api";
 import { makeStyles } from "@/themes/hooks";
 
-// ==============================|| HOOK - AVATAR ||============================== //
-
-const useAvatar = (email?: string) => {
-  const seedRef = useRef("default");
-
-  // 只在第一次拿到 email 时更新 seed，避免闪烁
-  if (email && seedRef.current === "default") {
-    seedRef.current = email;
-  }
-
-  const seed = seedRef.current;
-
-  return `https://api.dicebear.com/7.x/lorelei/png?seed=${encodeURIComponent(
-    seed
-  )}&radius=50&backgroundColor=0b1a2b,1b263b,415a77`;
-};
-
-// ==============================|| STYLES ||============================== //
+// ==============================|| HEADER CONTENT - PROFILE ||============================== //
 
 const useStyles = makeStyles<{ open: boolean }>({
   name: "profile"
@@ -56,10 +38,7 @@ const useStyles = makeStyles<{ open: boolean }>({
     },
     borderRadius: theme.shape.borderRadius,
     "&:hover": {
-      backgroundColor:
-        theme.palette.mode === "dark"
-          ? theme.palette.secondary.light
-          : theme.palette.secondary.lighter
+      backgroundColor: theme.palette.mode === "dark" ? theme.palette.secondary.light : theme.palette.secondary.lighter
     },
     "&:focus-visible": {
       outline: `2px solid ${theme.palette.secondary.dark}`,
@@ -93,36 +72,40 @@ const useStyles = makeStyles<{ open: boolean }>({
   }
 }));
 
-// ==============================|| COMPONENT ||============================== //
-
 const Profile = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { t } = useTranslation();
 
-  const { data: user, isLoading } = useGetUserInfoQuery();
+  const { data: user } = useGetUserInfoQuery();
 
   const anchorRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
 
-  const { classes } = useStyles({ open });
-
   const handleToggle = () => {
-    setOpen((prev) => !prev);
+    setOpen((prevOpen) => !prevOpen);
   };
 
+  const { classes } = useStyles({ open });
+
   const handleClose = (event: MouseEvent | TouchEvent) => {
-    if (anchorRef.current?.contains(event.target as HTMLElement)) {
+    if (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) {
       return;
     }
     setOpen(false);
   };
 
-  // ✅ 使用优化后的头像 hook
-  const generatedAvatar = useAvatar(user?.email);
+  // ==================== 强制生成头像 ==================== //
 
-  // ✅ 未来可扩展：优先使用后端头像
-  const avatar = user?.avatar_url || generatedAvatar;
+  const seed = user?.email || "user";
+
+  // 使用 DiceBear 生成拟人化头像（Apple 风）
+  const generatedAvatar = `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(
+    seed
+  )}&backgroundType=gradientLinear&radius=50`;
+
+  // **强制不使用后端头像**，直接使用生成头像
+  const avatar = generatedAvatar;
 
   // ==================== UI ==================== //
 
@@ -137,27 +120,16 @@ const Profile = () => {
         onClick={handleToggle}
       >
         <Stack direction="row" spacing={2} className={classes.userInfo}>
-          {/* 头像 */}
-          {isLoading ? (
-            <Skeleton variant="circular" width={32} height={32} />
-          ) : (
-            <Avatar
-              alt="profile user"
-              src={avatar}
-              size="xs"
-              onError={(e: any) => {
-                e.target.src = generatedAvatar;
-              }}
-            />
-          )}
-
-          {/* 邮箱 */}
-          {!isMobile &&
-            (isLoading ? (
-              <Skeleton width={120} height={20} />
-            ) : (
-              <Typography variant="subtitle1">{user?.email}</Typography>
-            ))}
+          {/* ✅ 右上角头像 */}
+          <Avatar
+            alt="profile user"
+            src={avatar}
+            size="xs"
+            onError={(e: any) => {
+              e.target.src = generatedAvatar;
+            }}
+          />
+          {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
         </Stack>
       </ButtonBase>
 
@@ -165,11 +137,18 @@ const Profile = () => {
         placement="bottom-end"
         open={open}
         anchorEl={anchorRef.current}
-        role="menu"
+        role={"menu"}
         transition
         disablePortal
         popperOptions={{
-          modifiers: [{ name: "offset", options: { offset: [0, 9] } }]
+          modifiers: [
+            {
+              name: "offset",
+              options: {
+                offset: [0, 9]
+              }
+            }
+          ]
         }}
       >
         {({ TransitionProps }) => (
@@ -178,37 +157,26 @@ const Profile = () => {
               <ClickAwayListener onClickAway={handleClose}>
                 <MainCard elevation={0} border={false} content={false}>
                   <CardContent className={classes.cardContent}>
-                    <Stack direction="row" className={classes.avatarStack} spacing={1}>
-                      {/* 弹窗头像 */}
-                      {isLoading ? (
-                        <Skeleton variant="circular" width={40} height={40} />
-                      ) : (
-                        <Avatar
-                          alt="profile user"
-                          src={avatar}
-                          className={classes.userAvatar}
-                          onError={(e: any) => {
-                            e.target.src = generatedAvatar;
-                          }}
-                        />
-                      )}
-
+                    <Stack direction={"row"} className={classes.avatarStack} spacing={1}>
+                      {/* ✅ 弹窗头像 */}
+                      <Avatar
+                        alt="profile user"
+                        src={avatar}
+                        className={classes.userAvatar}
+                        onError={(e: any) => {
+                          e.target.src = generatedAvatar;
+                        }}
+                      />
                       <Stack className={classes.infoStack}>
-                        {isLoading ? (
-                          <Skeleton width={140} height={20} />
-                        ) : (
-                          <Typography variant="h6" noWrap>
-                            {user?.email}
-                          </Typography>
-                        )}
-
+                        <Typography variant="h6" noWrap>
+                          {user?.email}
+                        </Typography>
                         <Typography variant="body2" color="textSecondary">
                           {t("layout.header.profile.user_secondary")}
                         </Typography>
                       </Stack>
                     </Stack>
                   </CardContent>
-
                   <Divider />
                   {open && <MenuList />}
                 </MainCard>
