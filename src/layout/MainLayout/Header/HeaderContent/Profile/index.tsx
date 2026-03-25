@@ -24,7 +24,7 @@ import MenuList from "./MenuList";
 import { useGetUserInfoQuery } from "@/store/services/api";
 import { makeStyles } from "@/themes/hooks";
 
-// ✅ 引入 Multiavatar
+// ✅ Multiavatar
 import multiavatar from "@multiavatar/multiavatar/esm";
 
 // ==============================|| HEADER CONTENT - PROFILE ||============================== //
@@ -101,7 +101,7 @@ const Profile = () => {
     setOpen(false);
   };
 
-  // ==================== Multiavatar 本地头像 ==================== //
+  // ==================== Multiavatar 本地头像（强制使用） ==================== //
   const seed = user?.email || "user";
   const avatarSvg = multiavatar(seed);
 
@@ -118,22 +118,18 @@ const Profile = () => {
         onClick={handleToggle}
       >
         <Stack direction="row" spacing={2} className={classes.userInfo}>
-          {/* ✅ 右上角头像 */}
-          {user?.avatar_url ? (
-            <Avatar alt="profile user" src={user.avatar_url} size="xs" />
-          ) : (
-            <Avatar size="xs">
-              <div
-                dangerouslySetInnerHTML={{ __html: avatarSvg }}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: "50%",
-                  overflow: "hidden"
-                }}
-              />
-            </Avatar>
-          )}
+          {/* ✅ 右上角头像（强制 Multiavatar） */}
+          <Avatar size="xs">
+            <div
+              dangerouslySetInnerHTML={{ __html: avatarSvg }}
+              style={{
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                overflow: "hidden"
+              }}
+            />
+          </Avatar>
 
           {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
         </Stack>
@@ -164,22 +160,18 @@ const Profile = () => {
                 <MainCard elevation={0} border={false} content={false}>
                   <CardContent className={classes.cardContent}>
                     <Stack direction={"row"} className={classes.avatarStack} spacing={1}>
-                      {/* ✅ 弹窗头像 */}
-                      {user?.avatar_url ? (
-                        <Avatar alt="profile user" src={user.avatar_url} className={classes.userAvatar} />
-                      ) : (
-                        <Avatar className={classes.userAvatar}>
-                          <div
-                            dangerouslySetInnerHTML={{ __html: avatarSvg }}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              borderRadius: "50%",
-                              overflow: "hidden"
-                            }}
-                          />
-                        </Avatar>
-                      )}
+                      {/* ✅ 弹窗头像（强制 Multiavatar） */}
+                      <Avatar className={classes.userAvatar}>
+                        <div
+                          dangerouslySetInnerHTML={{ __html: avatarSvg }}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            borderRadius: "50%",
+                            overflow: "hidden"
+                          }}
+                        />
+                      </Avatar>
 
                       <Stack className={classes.infoStack}>
                         <Typography variant="h6" noWrap>
