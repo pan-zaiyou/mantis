@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 // material-ui
@@ -19,22 +19,10 @@ import { useGetUserInfoQuery } from "@/store/services/api";
 
 const Profile = () => {
   const { data: user } = useGetUserInfoQuery();
-  const [avatar, setAvatar] = useState<string>("");
-
-  useEffect(() => {
-    // 使用 AvatarAI 或类似服务生成头像
-    const generateAvatar = () => {
-      const seed = user?.email || "default@user.com";
-      const generatedAvatar = `https://avatarai.example.com/api/avatar?seed=${encodeURIComponent(
-        seed
-      )}&style=memojis&background=gradient&expressions=true&hair=true`;
-
-      return generatedAvatar;
-    };
-
-    // 设置初始头像（确保头像固定）
-    setAvatar(generateAvatar());
-  }, [user?.email]); // 当用户邮箱改变时更新头像
+  const [avatar] = useState<string>(
+    // 固定头像 URL，不再动态生成
+    `https://avatarai.example.com/api/avatar?seed=default@user.com&style=memojis&background=gradient&expressions=true&hair=true`
+  );
 
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down("md"));
 
@@ -42,7 +30,7 @@ const Profile = () => {
     <Box>
       <ButtonBase aria-label="open profile">
         <Stack direction="row" spacing={2}>
-          {/* 头像：固定头像，不会刷新变化 */}
+          {/* 固定头像 */}
           <Avatar alt="profile user" src={avatar} size="xs" />
           {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
         </Stack>
