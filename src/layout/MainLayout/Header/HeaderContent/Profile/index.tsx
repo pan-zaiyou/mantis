@@ -24,6 +24,9 @@ import MenuList from "./MenuList";
 import { useGetUserInfoQuery } from "@/store/services/api";
 import { makeStyles } from "@/themes/hooks";
 
+// ✅ 引入 Multiavatar
+import multiavatar from "@multiavatar/multiavatar/esm";
+
 // ==============================|| HEADER CONTENT - PROFILE ||============================== //
 
 const useStyles = makeStyles<{ open: boolean }>({
@@ -98,12 +101,9 @@ const Profile = () => {
     setOpen(false);
   };
 
-  // ==================== Multiavatar（PNG稳定版） ==================== //
-
+  // ==================== Multiavatar 本地头像 ==================== //
   const seed = user?.email || "user";
-
-  // ✅ 使用 PNG（解决你现在不显示问题）
-  const avatar = `https://api.multiavatar.com/${encodeURIComponent(seed)}.png`;
+  const avatarSvg = multiavatar(seed);
 
   // ==================== UI ==================== //
 
@@ -118,22 +118,23 @@ const Profile = () => {
         onClick={handleToggle}
       >
         <Stack direction="row" spacing={2} className={classes.userInfo}>
-          {/* 右上角头像 */}
-          <Avatar
-            alt="profile user"
-            src={avatar}
-            size="xs"
-            sx={{
-              border: "2px solid",
-              borderColor: "divider"
-            }}
-            imgProps={{
-              referrerPolicy: "no-referrer"
-            }}
-            onError={(e: any) => {
-              e.target.src = `https://api.multiavatar.com/default.png`;
-            }}
-          />
+          {/* ✅ 右上角头像 */}
+          {user?.avatar_url ? (
+            <Avatar alt="profile user" src={user.avatar_url} size="xs" />
+          ) : (
+            <Avatar size="xs">
+              <div
+                dangerouslySetInnerHTML={{ __html: avatarSvg }}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: "50%",
+                  overflow: "hidden"
+                }}
+              />
+            </Avatar>
+          )}
+
           {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
         </Stack>
       </ButtonBase>
@@ -163,18 +164,23 @@ const Profile = () => {
                 <MainCard elevation={0} border={false} content={false}>
                   <CardContent className={classes.cardContent}>
                     <Stack direction={"row"} className={classes.avatarStack} spacing={1}>
-                      {/* 弹窗头像 */}
-                      <Avatar
-                        alt="profile user"
-                        src={avatar}
-                        className={classes.userAvatar}
-                        imgProps={{
-                          referrerPolicy: "no-referrer"
-                        }}
-                        onError={(e: any) => {
-                          e.target.src = `https://api.multiavatar.com/default.png`;
-                        }}
-                      />
+                      {/* ✅ 弹窗头像 */}
+                      {user?.avatar_url ? (
+                        <Avatar alt="profile user" src={user.avatar_url} className={classes.userAvatar} />
+                      ) : (
+                        <Avatar className={classes.userAvatar}>
+                          <div
+                            dangerouslySetInnerHTML={{ __html: avatarSvg }}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              borderRadius: "50%",
+                              overflow: "hidden"
+                            }}
+                          />
+                        </Avatar>
+                      )}
+
                       <Stack className={classes.infoStack}>
                         <Typography variant="h6" noWrap>
                           {user?.email}
