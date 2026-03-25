@@ -22,16 +22,17 @@ const Profile = () => {
   const [avatar, setAvatar] = useState<string>("");
 
   useEffect(() => {
-    // 生成随机头像的函数
+    // 使用 AvatarAI 或类似服务生成头像
     const generateAvatar = () => {
       const seed = user?.email || "default@user.com";
-      const randomSeed = `${seed}-${Math.random()}`; // 基于随机数生成头像
-      return `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(
-        randomSeed
-      )}&backgroundType=gradientLinear&radius=50`;
+      const generatedAvatar = `https://avatarai.example.com/api/avatar?seed=${encodeURIComponent(
+        seed
+      )}&style=memojis&background=gradient&expressions=true&hair=true`;
+
+      return generatedAvatar;
     };
 
-    // 设置初始头像
+    // 设置初始头像（确保头像固定）
     setAvatar(generateAvatar());
   }, [user?.email]); // 当用户邮箱改变时更新头像
 
@@ -41,7 +42,7 @@ const Profile = () => {
     <Box>
       <ButtonBase aria-label="open profile">
         <Stack direction="row" spacing={2}>
-          {/* 头像：只会渲染一次，之后不会再变化 */}
+          {/* 头像：固定头像，不会刷新变化 */}
           <Avatar alt="profile user" src={avatar} size="xs" />
           {isMobile || <Typography variant="subtitle1">{user?.email}</Typography>}
         </Stack>
