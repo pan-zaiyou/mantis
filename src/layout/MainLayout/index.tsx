@@ -31,6 +31,9 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
+  // 👇 根据你实际 Redux 路径修改
+  const user = useSelector((state: RootStateProps) => state.user?.profile);
+
   // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
 
@@ -39,12 +42,11 @@ const MainLayout = () => {
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
-  // ==================== ✅ Crisp Chat 接入 ====================
+  // ==================== ✅ Crisp 初始化 ====================
   useEffect(() => {
     (window as any).$crisp = [];
     (window as any).CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
 
-    // 防止重复加载
     if (document.getElementById("crisp-script")) return;
 
     const script = document.createElement("script");
@@ -54,7 +56,38 @@ const MainLayout = () => {
 
     document.head.appendChild(script);
   }, []);
-  // ==========================================================
+  // ======================================================
+
+  // ==================== ✅ 只设置邮箱 ====================
+  useEffect(() => {
+    if (!user || !(window as any).$crisp) return;
+
+    if (user.email) {
+      (window as any).$crisp.push([
+        "set",
+        "user:email",
+        [user.email]
+      ]);
+    }
+
+    // ⭐ 可选：你仍然可以保留套餐信息（不影响隐私）
+    if (user.plan) {
+      (window as any).$crisp.push([
+        "set",
+        "session:data",
+        [[["plan", user.plan]]]
+      ]);
+    }
+  }, [user]);
+  // ======================================================
+
+  // ==================== ✅ 登出重置 ====================
+  useEffect(() => {
+    if (user === null && (window as any).$crisp) {
+      (window as any).$crisp.push(["do", "session:reset"]);
+    }
+  }, [user]);
+  // ======================================================
 
   // set media wise responsive drawer
   useEffect(() => {
@@ -62,11 +95,9 @@ const MainLayout = () => {
       setOpen(!matchDownLG);
       dispatch(openDrawer({ drawerOpen: !matchDownLG }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchDownLG]);
 
   useEffect(() => {
-    // Close drawer on route change only on small screen devices
     if (matchDownLG) {
       setOpen(false);
       dispatch(openDrawer({ drawerOpen: false }));
