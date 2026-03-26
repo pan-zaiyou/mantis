@@ -31,6 +31,9 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
+  // ✅ 这里获取用户（关键）
+  const user = useSelector((state: RootStateProps) => state.user?.user);
+
   // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
   const handleDrawerToggle = () => {
@@ -40,23 +43,59 @@ const MainLayout = () => {
 
   // ===================== ✅ Crisp 加载 =====================
   useEffect(() => {
-    // 防止重复加载
     if ((window as any).CRISP_WEBSITE_ID) return;
 
     (window as any).$crisp = [];
     (window as any).CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
 
-    const d = document;
-    const s = d.createElement("script");
-
+    const s = document.createElement("script");
     s.src = "https://client.crisp.chat/l.js";
     s.async = true;
 
-    d.getElementsByTagName("head")[0].appendChild(s);
-
-    // 可选：默认隐藏聊天（做科技风UI用）
-    // (window as any).$crisp.push(["do", "chat:hide"]);
+    document.head.appendChild(s);
   }, []);
+  // =======================================================
+
+  // ===================== ✅ Crisp 用户数据 =====================
+  useEffect(() => {
+    if (!user) return;
+
+    const used = (user.u || 0) + (user.d || 0);
+    const total = user.transfer_enable || 0;
+    const left = total - used;
+
+    const leftSafe = left > 0 ? left : 0;
+
+    const formatGB = (val: number) =>
+      (val / 1024 / 1024 / 1024).toFixed(2) + " GB";
+
+    const formatTime = (ts: number) => {
+      if (!ts) return "永久";
+      return new Date(ts * 1000).toLocaleString();
+    };
+
+    (window as any).$crisp = (window as any).$crisp || [];
+
+    // ⭐ 刷新 session（关键）
+    (window as any).$crisp.push(["do", "session:reset"]);
+
+    // 用户信息
+    (window as any).$crisp.push(["set", "user:email", [user.email]]);
+    (window as any).$crisp.push(["set", "user:nickname", [user.email]]);
+
+    // 自定义数据
+    (window as any).$crisp.push([
+      "set",
+      "session:data",
+      [
+        ["套餐", user.plan?.name || "无套餐"],
+        ["总流量", formatGB(total)],
+        ["已用流量", formatGB(used)],
+        ["剩余流量", formatGB(leftSafe)],
+        ["到期时间", formatTime(user.expired_at)]
+      ]
+    ]);
+  }, [user]);
   // =======================================================
 
   // set media wise responsive drawer
@@ -69,7 +108,6 @@ const MainLayout = () => {
   }, [matchDownLG]);
 
   useEffect(() => {
-    // Close drawer on route change only on small screen devices
     if (matchDownLG) {
       setOpen(false);
       dispatch(openDrawer({ drawerOpen: false }));
