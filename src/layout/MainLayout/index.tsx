@@ -18,8 +18,6 @@ import Breadcrumbs from "@/components/@extended/Breadcrumbs";
 import { RootStateProps } from "@/types/root";
 import { openDrawer } from "@/store/reducers/menu";
 
-// ==============================|| MAIN LAYOUT ||============================== //
-
 const MainLayout = () => {
   const theme = useTheme();
   const matchDownLG = useMediaQuery(theme.breakpoints.down("xl"));
@@ -31,17 +29,17 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
-  // ✅ 这里获取用户（关键）
+  // ✅ v2board 数据（重点）
   const user = useSelector((state: RootStateProps) => state.user?.user);
+  const subscribe = useSelector((state: RootStateProps) => state.user?.subscribe);
 
-  // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
   const handleDrawerToggle = () => {
     setOpen(!open);
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
-  // ===================== ✅ Crisp 加载 =====================
+  // ===================== ✅ Crisp 初始化 =====================
   useEffect(() => {
     if ((window as any).CRISP_WEBSITE_ID) return;
 
@@ -53,58 +51,57 @@ const MainLayout = () => {
     s.async = true;
 
     document.head.appendChild(s);
+
+    // ❗ 禁止自动弹出
+    (window as any).$crisp.push(["do", "chat:hide"]);
   }, []);
   // =======================================================
 
-  // ===================== ✅ Crisp 用户数据 =====================
+  // ===================== ✅ Crisp 用户数据（使用 subscribe） =====================
   useEffect(() => {
-    if (!user) return;
+    if (!user || !subscribe) return;
 
-    const used = (user.u || 0) + (user.d || 0);
-    const total = user.transfer_enable || 0;
-    const left = total - used;
+    const timer = setInterval(() => {
+      if (!(window as any).$crisp) return;
 
-    const leftSafe = left > 0 ? left : 0;
+      const used = (subscribe.u || 0) + (subscribe.d || 0);
+      const total = subscribe.transfer_enable || 0;
+      const left = total - used > 0 ? total - used : 0;
 
-    const formatGB = (val: number) =>
-      (val / 1024 / 1024 / 1024).toFixed(2) + " GB";
+      const toGB = (v: number) =>
+        (v / 1024 / 1024 / 1024).toFixed(2) + " GB";
 
-    const formatTime = (ts: number) => {
-      if (!ts) return "永久";
-      return new Date(ts * 1000).toLocaleString();
-    };
+      const expire = subscribe.expired_at
+        ? new Date(subscribe.expired_at * 1000).toLocaleString()
+        : "永久";
 
-    (window as any).$crisp = (window as any).$crisp || [];
+      (window as any).$crisp.push(["set", "user:email", [user.email]]);
+      (window as any).$crisp.push(["set", "user:nickname", [user.email]]);
 
-    // ⭐ 刷新 session（关键）
-    (window as any).$crisp.push(["do", "session:reset"]);
+      (window as any).$crisp.push([
+        "set",
+        "session:data",
+        [
+          ["套餐", user.plan?.name || "无套餐"],
+          ["总流量", toGB(total)],
+          ["已用流量", toGB(used)],
+          ["剩余流量", toGB(left)],
+          ["到期时间", expire]
+        ]
+      ]);
 
-    // 用户信息
-    (window as any).$crisp.push(["set", "user:email", [user.email]]);
-    (window as any).$crisp.push(["set", "user:nickname", [user.email]]);
+      clearInterval(timer);
+    }, 500);
 
-    // 自定义数据
-    (window as any).$crisp.push([
-      "set",
-      "session:data",
-      [
-        ["套餐", user.plan?.name || "无套餐"],
-        ["总流量", formatGB(total)],
-        ["已用流量", formatGB(used)],
-        ["剩余流量", formatGB(leftSafe)],
-        ["到期时间", formatTime(user.expired_at)]
-      ]
-    ]);
-  }, [user]);
+    return () => clearInterval(timer);
+  }, [user, subscribe]);
   // =======================================================
 
-  // set media wise responsive drawer
   useEffect(() => {
     if (!miniDrawer) {
       setOpen(!matchDownLG);
       dispatch(openDrawer({ drawerOpen: !matchDownLG }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchDownLG]);
 
   useEffect(() => {
