@@ -18,6 +18,8 @@ import Breadcrumbs from "@/components/@extended/Breadcrumbs";
 import { RootStateProps } from "@/types/root";
 import { openDrawer } from "@/store/reducers/menu";
 
+// ==============================|| MAIN LAYOUT ||============================== //
+
 const MainLayout = () => {
   const theme = useTheme();
   const matchDownLG = useMediaQuery(theme.breakpoints.down("xl"));
@@ -29,71 +31,51 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
-  const user = useSelector((state: RootStateProps) => state.user?.profile);
+  // 假设你 Redux 里存了用户信息
+  const currentUser = useSelector((state: RootStateProps) => state.user.currentUser);
 
+  // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
   const handleDrawerToggle = () => {
     setOpen(!open);
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
-  // ==================== Crisp 初始化 ====================
-  useEffect(() => {
-    (window as any).$crisp = [];
-    (window as any).CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
-
-    if (!document.getElementById("crisp-script")) {
-      const script = document.createElement("script");
-      script.id = "crisp-script";
-      script.src = "https://client.crisp.chat/l.js";
-      script.async = true;
-      document.head.appendChild(script);
-    }
-  }, []);
-
-  // ==================== 登录用户邮箱/账号自动识别 ====================
-  useEffect(() => {
-    if (!user || !user.email) return;
-
-    const interval = setInterval(() => {
-      const crisp = (window as any).$crisp;
-      if (crisp && crisp.push) {
-        // 设置邮箱
-        crisp.push(["set", "user:email", [user.email]]);
-        // 设置唯一用户ID
-        crisp.push(["set", "user:identifier", [user.email]]);
-        // 可选：设置 session 数据（比如套餐）
-        if (user.plan) {
-          crisp.push(["set", "session:data", [[["plan", user.plan]]]]);
-        }
-        clearInterval(interval);
-      }
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [user]);
-
-  // ==================== 登出时重置 ====================
-  useEffect(() => {
-    if (user === null && (window as any).$crisp) {
-      (window as any).$crisp.push(["do", "session:reset"]);
-    }
-  }, [user]);
-
-  // ==================== Drawer 响应式 ====================
+  // set media wise responsive drawer
   useEffect(() => {
     if (!miniDrawer) {
       setOpen(!matchDownLG);
       dispatch(openDrawer({ drawerOpen: !matchDownLG }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchDownLG]);
 
   useEffect(() => {
+    // Close drawer on route change only on small screen devices
     if (matchDownLG) {
       setOpen(false);
       dispatch(openDrawer({ drawerOpen: false }));
     }
-  }, [location.pathname, matchDownLG]);
+  }, [location.pathname, matchDownLG]); // Listen to pathname changes and screen size changes
+
+  // ================= CRISP INTEGRATION ================= //
+  useEffect(() => {
+    if (!currentUser) return;
+
+    // 等 Crisp 脚本加载完成后设置用户信息
+    const interval = setInterval(() => {
+      if (window.$crisp) {
+        window.$crisp.push(["set", "user:email", [currentUser.email]]);
+        window.$crisp.push(["set", "user:nickname", [currentUser.nickname]]);
+        window.$crisp.push(["set", "session:data", [["v2board_id", currentUser.id]]]);
+        clearInterval(interval); // 设置成功后停止轮询
+      }
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, [currentUser]);
+
+  // ===================================================== //
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
