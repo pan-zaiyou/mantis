@@ -59,37 +59,64 @@ const MainLayout = () => {
     }
   }, [location.pathname, matchDownLG]);
 
-  // ✅ ✅ 核心：同步用户到 Crisp（最终稳定版）
+  // ✅ ✅ Crisp 用户绑定（最终稳定版）
   useEffect(() => {
     if (!window.$crisp || !data) return;
 
-    console.log("🔥 user data:", data);
+    const userData = data?.data || data;
 
-    // ✅ 多结构兼容取 email
-    let email: string | null = null;
+    const email =
+      userData?.email ||
+      userData?.auth_data?.email;
 
-    if (data?.data?.email) email = data.data.email;
-    else if (data?.data?.auth_data?.email) email = data.data.auth_data.email;
-    else if (data?.email) email = data.email;
+    const userId =
+      userData?.id ||
+      userData?.user_id ||
+      "unknown";
+
+    const plan =
+      userData?.plan?.name ||
+      userData?.plan?.title ||
+      userData?.group?.name ||
+      "Unknown";
+
+    const transferEnable = userData?.transfer_enable || 0;
+    const usedTraffic =
+      (userData?.u || 0) + (userData?.d || 0);
+    const remaining = transferEnable - usedTraffic;
 
     if (!email) {
-      console.warn("❌ 没拿到 email");
+      console.warn("❌ Crisp: 没拿到 email");
       return;
     }
 
-    console.log("✅ Crisp email:", email);
+    // ✅ 防重复（跨刷新也生效）
+    const lastEmail = localStorage.getItem("crisp_email");
+    if (lastEmail === email) {
+      console.log("🟡 Crisp 已绑定，无需重复");
+      return;
+    }
 
-    // ✅ 关键：重置 session（否则不会更新）
-    window.$crisp.push(["do", "session:reset"]);
+    console.log("🟢 绑定 Crisp 用户:", email);
+
+    localStorage.setItem("crisp_email", email);
 
     // ✅ 设置用户信息
     window.$crisp.push(["set", "user:email", email]);
     window.$crisp.push(["set", "user:nickname", email]);
 
-    // ✅ 延迟再推一次（防止 Crisp 未完全加载）
-    setTimeout(() => {
-      window.$crisp.push(["set", "user:email", email]);
-    }, 1000);
+    // ✅ 扩展信息（客服可见）
+    window.$crisp.push([
+      "set",
+      "session:data",
+      [
+        ["UID", String(userId)],
+        ["Plan", String(plan)],
+        ["Total Traffic", `${(transferEnable / 1024 / 1024 / 1024).toFixed(2)} GB`],
+        ["Used Traffic", `${(usedTraffic / 1024 / 1024 / 1024).toFixed(2)} GB`],
+        ["Remaining", `${(remaining / 1024 / 1024 / 1024).toFixed(2)} GB`]
+      ]
+    ]);
 
   }, [data]);
 
