@@ -18,8 +18,6 @@ import Breadcrumbs from "@/components/@extended/Breadcrumbs";
 import { RootStateProps } from "@/types/root";
 import { openDrawer } from "@/store/reducers/menu";
 
-// ==============================|| MAIN LAYOUT ||============================== //
-
 const MainLayout = () => {
   const theme = useTheme();
   const matchDownLG = useMediaQuery(theme.breakpoints.down("xl"));
@@ -31,10 +29,8 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
-  // 获取登录用户信息（V2Board 注册邮箱）
   const user = useSelector((state: RootStateProps) => state.user?.profile);
 
-  // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
   const handleDrawerToggle = () => {
     setOpen(!open);
@@ -60,11 +56,16 @@ const MainLayout = () => {
     if (!user || !user.email) return;
 
     const interval = setInterval(() => {
-      if ((window as any).$crisp) {
-        // 设置邮箱为用户邮箱
-        (window as any).$crisp.push(["set", "user:email", [user.email]]);
-        // 设置用户ID为邮箱，保证后台唯一识别
-        (window as any).$crisp.push(["set", "user:user_id", [user.email]]);
+      const crisp = (window as any).$crisp;
+      if (crisp && crisp.push) {
+        // 设置邮箱
+        crisp.push(["set", "user:email", [user.email]]);
+        // 设置唯一用户ID
+        crisp.push(["set", "user:identifier", [user.email]]);
+        // 可选：设置 session 数据（比如套餐）
+        if (user.plan) {
+          crisp.push(["set", "session:data", [[["plan", user.plan]]]]);
+        }
         clearInterval(interval);
       }
     }, 100);
