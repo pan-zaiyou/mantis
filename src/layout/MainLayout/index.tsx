@@ -31,63 +31,56 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
-  // 👇 根据你实际 Redux 路径修改
+  // 获取登录用户信息（V2Board 注册邮箱）
   const user = useSelector((state: RootStateProps) => state.user?.profile);
 
   // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
-
   const handleDrawerToggle = () => {
     setOpen(!open);
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
-  // ==================== ✅ Crisp 初始化 ====================
+  // ==================== Crisp 初始化 ====================
   useEffect(() => {
     (window as any).$crisp = [];
     (window as any).CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
 
-    if (document.getElementById("crisp-script")) return;
-
-    const script = document.createElement("script");
-    script.id = "crisp-script";
-    script.src = "https://client.crisp.chat/l.js";
-    script.async = true;
-
-    document.head.appendChild(script);
+    if (!document.getElementById("crisp-script")) {
+      const script = document.createElement("script");
+      script.id = "crisp-script";
+      script.src = "https://client.crisp.chat/l.js";
+      script.async = true;
+      document.head.appendChild(script);
+    }
   }, []);
-  // ======================================================
 
-  // ==================== ✅ 只设置邮箱 ====================
+  // ==================== 登录用户邮箱自动识别 ====================
   useEffect(() => {
-    if (!user || !(window as any).$crisp) return;
+    if (!user || !user.email) return;
 
-    if (user.email) {
-      (window as any).$crisp.push([
-        "set",
-        "user:email",
-        [user.email]
-      ]);
-    }
+    const interval = setInterval(() => {
+      if ((window as any).$crisp) {
+        // 设置邮箱为用户ID
+        (window as any).$crisp.push([
+          "set",
+          "session:data",
+          [[["email", user.email]]]
+        ]);
 
-    // ⭐ 可选：你仍然可以保留套餐信息（不影响隐私）
-    if (user.plan) {
-      (window as any).$crisp.push([
-        "set",
-        "session:data",
-        [[["plan", user.plan]]]
-      ]);
-    }
+        clearInterval(interval); // 设置完就清除
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
   }, [user]);
-  // ======================================================
 
-  // ==================== ✅ 登出重置 ====================
+  // ==================== 登出时重置 ====================
   useEffect(() => {
     if (user === null && (window as any).$crisp) {
       (window as any).$crisp.push(["do", "session:reset"]);
     }
   }, [user]);
-  // ======================================================
 
   // set media wise responsive drawer
   useEffect(() => {
@@ -108,17 +101,8 @@ const MainLayout = () => {
     <Box sx={{ display: "flex", width: "100%" }}>
       <Header open={open} handleDrawerToggle={handleDrawerToggle} />
       <Drawer open={open} handleDrawerToggle={handleDrawerToggle} />
-
-      <Box
-        component="main"
-        sx={{
-          width: "calc(100% - 260px)",
-          flexGrow: 1,
-          p: { xs: 2, sm: 3 }
-        }}
-      >
+      <Box component="main" sx={{ width: "calc(100% - 260px)", flexGrow: 1, p: { xs: 2, sm: 3 } }}>
         <Toolbar />
-
         {container && (
           <Container
             maxWidth="xl"
@@ -130,34 +114,16 @@ const MainLayout = () => {
               flexDirection: "column"
             }}
           >
-            <Breadcrumbs
-              navigation={navigation}
-              title
-              titleBottom
-              card={false}
-              divider={false}
-            />
+            <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} />
             <Outlet />
             <Footer />
           </Container>
         )}
-
         {!container && (
           <Box
-            sx={{
-              position: "relative",
-              minHeight: "calc(100vh - 110px)",
-              display: "flex",
-              flexDirection: "column"
-            }}
+            sx={{ position: "relative", minHeight: "calc(100vh - 110px)", display: "flex", flexDirection: "column" }}
           >
-            <Breadcrumbs
-              navigation={navigation}
-              title
-              titleBottom
-              card={false}
-              divider={false}
-            />
+            <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} />
             <Outlet />
             <Footer />
           </Box>
