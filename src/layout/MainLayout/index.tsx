@@ -53,26 +53,28 @@ const MainLayout = () => {
     }
   }, [location.pathname, matchDownLG]);
 
-  // ================= 🔥 Crisp 动态加载 =================
+  // ================= 🔥 加载 Crisp =================
   const loadCrisp = () => {
-    if (window.CRISP_LOADED) return;
+    if ((window as any).CRISP_LOADED) return;
 
-    window.$crisp = [];
-    window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
+    (window as any).$crisp = [];
+    (window as any).CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
 
     const script = document.createElement("script");
     script.src = "https://client.crisp.chat/l.js";
     script.async = true;
     document.head.appendChild(script);
 
-    window.CRISP_LOADED = true;
+    (window as any).CRISP_LOADED = true;
   };
 
-  // ================= 🔥 用户绑定 =================
+  // ================= 🔥 绑定用户 =================
   useEffect(() => {
     if (!data) return;
 
     const userData = data?.data || data;
+
+    console.log("🔥 userData:", userData);
 
     const email =
       userData?.email ||
@@ -103,6 +105,7 @@ const MainLayout = () => {
       userData?.plan_id ||
       "Free";
 
+    // ✅ 流量（字节 → GB）
     const transferEnable = userData?.transfer_enable || 0;
     const usedTraffic =
       (userData?.u || 0) + (userData?.d || 0);
@@ -111,17 +114,24 @@ const MainLayout = () => {
     const toGB = (val: number) =>
       (val / 1024 / 1024 / 1024).toFixed(2);
 
-    // ⏳ 等 Crisp 初始化
-    setTimeout(() => {
-      window.$crisp.push(["set", "user:email", email]);
-      window.$crisp.push(["set", "user:nickname", email]);
+    // ✅ 到期时间（时间戳 → 日期）
+    const expireTime = userData?.expired_at;
+    const expireDate = expireTime
+      ? new Date(expireTime * 1000).toLocaleString()
+      : "永久";
 
-      window.$crisp.push([
+    // ⏳ 等 Crisp 加载完成
+    setTimeout(() => {
+      (window as any).$crisp.push(["set", "user:email", email]);
+      (window as any).$crisp.push(["set", "user:nickname", email]);
+
+      (window as any).$crisp.push([
         "set",
         "session:data",
         [
           ["UID", String(userId)],
           ["Plan", String(plan)],
+          ["Expire", expireDate],
           ["Total", `${toGB(transferEnable)} GB`],
           ["Used", `${toGB(usedTraffic)} GB`],
           ["Remaining", `${toGB(remaining)} GB`]
