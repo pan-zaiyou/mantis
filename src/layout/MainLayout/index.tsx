@@ -31,9 +31,6 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
-  // 假设你 Redux 里存了用户信息
-  const currentUser = useSelector((state: RootStateProps) => state.user.currentUser);
-
   // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
   const handleDrawerToggle = () => {
@@ -57,25 +54,6 @@ const MainLayout = () => {
       dispatch(openDrawer({ drawerOpen: false }));
     }
   }, [location.pathname, matchDownLG]); // Listen to pathname changes and screen size changes
-
-  // ================= CRISP INTEGRATION ================= //
-  useEffect(() => {
-    if (!currentUser) return;
-
-    // 等 Crisp 脚本加载完成后设置用户信息
-    const interval = setInterval(() => {
-      if (window.$crisp) {
-        window.$crisp.push(["set", "user:email", [currentUser.email]]);
-        window.$crisp.push(["set", "user:nickname", [currentUser.nickname]]);
-        window.$crisp.push(["set", "session:data", [["v2board_id", currentUser.id]]]);
-        clearInterval(interval); // 设置成功后停止轮询
-      }
-    }, 200);
-
-    return () => clearInterval(interval);
-  }, [currentUser]);
-
-  // ===================================================== //
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
