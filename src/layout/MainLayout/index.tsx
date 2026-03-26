@@ -55,20 +55,17 @@ const MainLayout = () => {
     }
   }, []);
 
-  // ==================== 登录用户邮箱自动识别 ====================
+  // ==================== 登录用户邮箱/账号自动识别 ====================
   useEffect(() => {
     if (!user || !user.email) return;
 
     const interval = setInterval(() => {
       if ((window as any).$crisp) {
-        // 设置邮箱为用户ID
-        (window as any).$crisp.push([
-          "set",
-          "session:data",
-          [[["email", user.email]]]
-        ]);
-
-        clearInterval(interval); // 设置完就清除
+        // 设置邮箱为用户邮箱
+        (window as any).$crisp.push(["set", "user:email", [user.email]]);
+        // 设置用户ID为邮箱，保证后台唯一识别
+        (window as any).$crisp.push(["set", "user:user_id", [user.email]]);
+        clearInterval(interval);
       }
     }, 100);
 
@@ -82,7 +79,7 @@ const MainLayout = () => {
     }
   }, [user]);
 
-  // set media wise responsive drawer
+  // ==================== Drawer 响应式 ====================
   useEffect(() => {
     if (!miniDrawer) {
       setOpen(!matchDownLG);
