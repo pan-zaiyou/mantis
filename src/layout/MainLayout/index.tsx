@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
+// ✅ 新增
+import { useGetUserInfoQuery } from "@/store/services/api";
+
 // material-ui
 import { useTheme } from "@mui/material/styles";
 import { useMediaQuery, Box, Container, Toolbar } from "@mui/material";
@@ -31,6 +34,9 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
+  // ✅ 新增：获取用户信息
+  const { data } = useGetUserInfoQuery();
+
   // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
   const handleDrawerToggle = () => {
@@ -53,7 +59,17 @@ const MainLayout = () => {
       setOpen(false);
       dispatch(openDrawer({ drawerOpen: false }));
     }
-  }, [location.pathname, matchDownLG]); // Listen to pathname changes and screen size changes
+  }, [location.pathname, matchDownLG]);
+
+  // ✅ 新增：同步用户信息到 Crisp
+  useEffect(() => {
+    const email = data?.data?.email;
+
+    if (window.$crisp && email) {
+      window.$crisp.push(["set", "user:email", email]);
+      window.$crisp.push(["set", "user:nickname", email]);
+    }
+  }, [data]);
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
