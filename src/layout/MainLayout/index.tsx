@@ -31,6 +31,9 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
+  // 👇 获取当前登录用户（关键）
+  const currentUser = useSelector((state: RootStateProps) => state.user?.userInfo);
+
   // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
   const handleDrawerToggle = () => {
@@ -48,12 +51,45 @@ const MainLayout = () => {
   }, [matchDownLG]);
 
   useEffect(() => {
-    // Close drawer on route change only on small screen devices
     if (matchDownLG) {
       setOpen(false);
       dispatch(openDrawer({ drawerOpen: false }));
     }
-  }, [location.pathname, matchDownLG]); // Listen to pathname changes and screen size changes
+  }, [location.pathname, matchDownLG]);
+
+  // ================= CRISP 用户识别 ================= //
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const timer = setTimeout(() => {
+      if (window.$crisp) {
+        console.log("Crisp 设置用户:", currentUser);
+
+        // 邮箱
+        window.$crisp.push(["set", "user:email", [currentUser.email]]);
+
+        // 昵称
+        window.$crisp.push([
+          "set",
+          "user:nickname",
+          [currentUser.nickname || currentUser.email]
+        ]);
+
+        // 自定义数据（客服后台可见）
+        window.$crisp.push([
+          "set",
+          "session:data",
+          [
+            ["user_id", currentUser.id],
+            ["email", currentUser.email]
+          ]
+        ]);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [currentUser]);
+  // ================================================= //
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
@@ -79,7 +115,12 @@ const MainLayout = () => {
         )}
         {!container && (
           <Box
-            sx={{ position: "relative", minHeight: "calc(100vh - 110px)", display: "flex", flexDirection: "column" }}
+            sx={{
+              position: "relative",
+              minHeight: "calc(100vh - 110px)",
+              display: "flex",
+              flexDirection: "column"
+            }}
           >
             <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} />
             <Outlet />
