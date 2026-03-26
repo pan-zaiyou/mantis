@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
-// ✅ 新增
+// ✅ 获取用户信息
 import { useGetUserInfoQuery } from "@/store/services/api";
 
 // material-ui
@@ -34,7 +34,7 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
-  // ✅ 新增：获取用户信息
+  // ✅ 获取用户信息
   const { data } = useGetUserInfoQuery();
 
   // drawer toggler
@@ -44,31 +44,53 @@ const MainLayout = () => {
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
-  // set media wise responsive drawer
+  // 响应式抽屉
   useEffect(() => {
     if (!miniDrawer) {
       setOpen(!matchDownLG);
       dispatch(openDrawer({ drawerOpen: !matchDownLG }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchDownLG]);
 
   useEffect(() => {
-    // Close drawer on route change only on small screen devices
     if (matchDownLG) {
       setOpen(false);
       dispatch(openDrawer({ drawerOpen: false }));
     }
   }, [location.pathname, matchDownLG]);
 
-  // ✅ 新增：同步用户信息到 Crisp
+  // ✅ ✅ 核心：同步用户到 Crisp（最终稳定版）
   useEffect(() => {
-    const email = data?.data?.email;
+    if (!window.$crisp || !data) return;
 
-    if (window.$crisp && email) {
-      window.$crisp.push(["set", "user:email", email]);
-      window.$crisp.push(["set", "user:nickname", email]);
+    console.log("🔥 user data:", data);
+
+    // ✅ 多结构兼容取 email
+    let email: string | null = null;
+
+    if (data?.data?.email) email = data.data.email;
+    else if (data?.data?.auth_data?.email) email = data.data.auth_data.email;
+    else if (data?.email) email = data.email;
+
+    if (!email) {
+      console.warn("❌ 没拿到 email");
+      return;
     }
+
+    console.log("✅ Crisp email:", email);
+
+    // ✅ 关键：重置 session（否则不会更新）
+    window.$crisp.push(["do", "session:reset"]);
+
+    // ✅ 设置用户信息
+    window.$crisp.push(["set", "user:email", email]);
+    window.$crisp.push(["set", "user:nickname", email]);
+
+    // ✅ 延迟再推一次（防止 Crisp 未完全加载）
+    setTimeout(() => {
+      window.$crisp.push(["set", "user:email", email]);
+    }, 1000);
+
   }, [data]);
 
   return (
@@ -95,7 +117,12 @@ const MainLayout = () => {
         )}
         {!container && (
           <Box
-            sx={{ position: "relative", minHeight: "calc(100vh - 110px)", display: "flex", flexDirection: "column" }}
+            sx={{
+              position: "relative",
+              minHeight: "calc(100vh - 110px)",
+              display: "flex",
+              flexDirection: "column"
+            }}
           >
             <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} />
             <Outlet />
