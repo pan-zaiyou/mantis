@@ -37,14 +37,12 @@ const MainLayout = () => {
   // ✅ 获取用户信息
   const { data } = useGetUserInfoQuery();
 
-  // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
   const handleDrawerToggle = () => {
     setOpen(!open);
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
-  // 响应式抽屉
   useEffect(() => {
     if (!miniDrawer) {
       setOpen(!matchDownLG);
@@ -59,62 +57,86 @@ const MainLayout = () => {
     }
   }, [location.pathname, matchDownLG]);
 
-  // ✅ ✅ Crisp 用户绑定（最终稳定版）
+  // ✅ ✅ Crisp 完整绑定（终极稳定版）
   useEffect(() => {
     if (!window.$crisp || !data) return;
 
     const userData = data?.data || data;
 
+    console.log("🔥 userData:", userData); // 👉 调试用
+
+    // ✅ email 兼容
     const email =
       userData?.email ||
-      userData?.auth_data?.email;
+      userData?.auth_data?.email ||
+      userData?.user?.email;
 
+    if (!email) {
+      console.warn("❌ 没拿到 email");
+      return;
+    }
+
+    // ✅ 防重复绑定
+    const lastEmail = localStorage.getItem("crisp_email");
+    if (lastEmail === email) {
+      console.log("🟡 Crisp 已绑定");
+      return;
+    }
+    localStorage.setItem("crisp_email", email);
+
+    // ✅ 用户ID
     const userId =
       userData?.id ||
       userData?.user_id ||
+      userData?.user?.id ||
       "unknown";
 
+    // ✅ 套餐（兼容多结构）
     const plan =
       userData?.plan?.name ||
       userData?.plan?.title ||
       userData?.group?.name ||
-      "Unknown";
+      userData?.plan_id ||
+      userData?.user?.plan_id ||
+      "Free";
 
-    const transferEnable = userData?.transfer_enable || 0;
+    // ✅ 流量（标准 v2board）
+    const transferEnable =
+      userData?.transfer_enable ||
+      userData?.user?.transfer_enable ||
+      0;
+
     const usedTraffic =
-      (userData?.u || 0) + (userData?.d || 0);
+      (userData?.u || userData?.user?.u || 0) +
+      (userData?.d || userData?.user?.d || 0);
+
     const remaining = transferEnable - usedTraffic;
 
-    if (!email) {
-      console.warn("❌ Crisp: 没拿到 email");
-      return;
-    }
+    const toGB = (val: number) =>
+      (val / 1024 / 1024 / 1024).toFixed(2);
 
-    // ✅ 防重复（跨刷新也生效）
-    const lastEmail = localStorage.getItem("crisp_email");
-    if (lastEmail === email) {
-      console.log("🟡 Crisp 已绑定，无需重复");
-      return;
-    }
+    console.log("🟢 Crisp绑定:", {
+      email,
+      userId,
+      plan,
+      transferEnable,
+      usedTraffic
+    });
 
-    console.log("🟢 绑定 Crisp 用户:", email);
-
-    localStorage.setItem("crisp_email", email);
-
-    // ✅ 设置用户信息
+    // ✅ 设置用户
     window.$crisp.push(["set", "user:email", email]);
     window.$crisp.push(["set", "user:nickname", email]);
 
-    // ✅ 扩展信息（客服可见）
+    // ✅ 扩展信息
     window.$crisp.push([
       "set",
       "session:data",
       [
         ["UID", String(userId)],
         ["Plan", String(plan)],
-        ["Total Traffic", `${(transferEnable / 1024 / 1024 / 1024).toFixed(2)} GB`],
-        ["Used Traffic", `${(usedTraffic / 1024 / 1024 / 1024).toFixed(2)} GB`],
-        ["Remaining", `${(remaining / 1024 / 1024 / 1024).toFixed(2)} GB`]
+        ["Total", `${toGB(transferEnable)} GB`],
+        ["Used", `${toGB(usedTraffic)} GB`],
+        ["Remaining", `${toGB(remaining)} GB`]
       ]
     ]);
 
