@@ -31,15 +31,6 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
-  // 👇 尝试所有可能路径（强制兼容）
-  const state: any = useSelector((state: any) => state);
-
-  const currentUser =
-    state?.user?.userInfo ||
-    state?.user?.data?.user ||
-    state?.auth?.user ||
-    null;
-
   // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
   const handleDrawerToggle = () => {
@@ -62,37 +53,44 @@ const MainLayout = () => {
     }
   }, [location.pathname, matchDownLG]);
 
-  // =================🔥 强制绑定 Crisp（核心）🔥================= //
+  // =================🔥 最终解决：API 获取用户 + Crisp 绑定 🔥================= //
   useEffect(() => {
     let retry = 0;
 
-    const interval = setInterval(() => {
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch("/api/v1/user/info", {
+          credentials: "include"
+        });
+
+        const data = await res.json();
+        const email = data?.data?.email;
+
+        if (window.$crisp && email) {
+          console.log("✅ Crisp 绑定成功:", email);
+
+          // ❗关键：重置 session（否则一直 Visitor）
+          window.$crisp.push(["do", "session:reset"]);
+
+          // 设置邮箱
+          window.$crisp.push(["set", "user:email", [email]]);
+
+          clearInterval(timer);
+        }
+      } catch (e) {
+        // 忽略错误继续重试
+      }
+
       retry++;
-
-      const email =
-        currentUser?.email ||
-        currentUser?.user?.email ||
-        currentUser?.data?.email;
-
-      if (window.$crisp && email) {
-        console.log("✅ 强制写入 Crisp:", email);
-
-        // 强制写入邮箱
-        window.$crisp.push(["set", "user:email", [email]]);
-
-        clearInterval(interval);
+      if (retry > 20) {
+        clearInterval(timer);
+        console.log("❌ Crisp 绑定失败：API 未获取到用户");
       }
+    }, 500);
 
-      // 防止死循环（最多尝试10秒）
-      if (retry > 30) {
-        clearInterval(interval);
-        console.log("❌ Crisp 绑定失败：未获取到用户");
-      }
-    }, 300);
-
-    return () => clearInterval(interval);
-  }, [currentUser]);
-  // ============================================================ //
+    return () => clearInterval(timer);
+  }, []);
+  // ======================================================================== //
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
