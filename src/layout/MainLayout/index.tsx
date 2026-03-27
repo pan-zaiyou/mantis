@@ -18,6 +18,8 @@ import Breadcrumbs from "@/components/@extended/Breadcrumbs";
 import { RootStateProps } from "@/types/root";
 import { openDrawer } from "@/store/reducers/menu";
 
+// ==============================|| MAIN LAYOUT ||============================== //
+
 const MainLayout = () => {
   const theme = useTheme();
   const matchDownLG = useMediaQuery(theme.breakpoints.down("xl"));
@@ -29,97 +31,36 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
-  const currentUser = useSelector(
-    (state: RootStateProps) => state.user?.userInfo
-  );
-
+  // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
-
   const handleDrawerToggle = () => {
     setOpen(!open);
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
-  // responsive drawer
+  // set media wise responsive drawer
   useEffect(() => {
     if (!miniDrawer) {
       setOpen(!matchDownLG);
       dispatch(openDrawer({ drawerOpen: !matchDownLG }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchDownLG]);
 
   useEffect(() => {
+    // Close drawer on route change only on small screen devices
     if (matchDownLG) {
       setOpen(false);
       dispatch(openDrawer({ drawerOpen: false }));
     }
-  }, [location.pathname, matchDownLG]);
-
-  // ================= CRISP 用户绑定（已优化稳定版） ================= //
-  useEffect(() => {
-    if (!currentUser?.email) return;
-
-    let attempts = 0;
-
-    const timer = setInterval(() => {
-      attempts++;
-
-      if (window.$crisp && Array.isArray(window.$crisp)) {
-        clearInterval(timer);
-
-        console.log("Crisp 用户绑定成功:", currentUser);
-
-        // 用户邮箱（核心识别）
-        window.$crisp.push([
-          "set",
-          "user:email",
-          currentUser.email
-        ]);
-
-        // 用户昵称
-        window.$crisp.push([
-          "set",
-          "user:nickname",
-          currentUser.nickname || currentUser.email
-        ]);
-
-        // session 数据（客服后台可见）
-        window.$crisp.push([
-          "set",
-          "session:data",
-          {
-            user_id: String(currentUser.id),
-            email: currentUser.email,
-            nickname: currentUser.nickname || ""
-          }
-        ]);
-      }
-
-      if (attempts > 20) {
-        clearInterval(timer);
-        console.warn("Crisp 初始化超时");
-      }
-    }, 300);
-
-    return () => clearInterval(timer);
-  }, [currentUser]);
-  // ================================================= //
+  }, [location.pathname, matchDownLG]); // Listen to pathname changes and screen size changes
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
       <Header open={open} handleDrawerToggle={handleDrawerToggle} />
       <Drawer open={open} handleDrawerToggle={handleDrawerToggle} />
-
-      <Box
-        component="main"
-        sx={{
-          width: "calc(100% - 260px)",
-          flexGrow: 1,
-          p: { xs: 2, sm: 3 }
-        }}
-      >
+      <Box component="main" sx={{ width: "calc(100% - 260px)", flexGrow: 1, p: { xs: 2, sm: 3 } }}>
         <Toolbar />
-
         {container && (
           <Container
             maxWidth="xl"
@@ -131,34 +72,16 @@ const MainLayout = () => {
               flexDirection: "column"
             }}
           >
-            <Breadcrumbs
-              navigation={navigation}
-              title
-              titleBottom
-              card={false}
-              divider={false}
-            />
+            <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} />
             <Outlet />
             <Footer />
           </Container>
         )}
-
         {!container && (
           <Box
-            sx={{
-              position: "relative",
-              minHeight: "calc(100vh - 110px)",
-              display: "flex",
-              flexDirection: "column"
-            }}
+            sx={{ position: "relative", minHeight: "calc(100vh - 110px)", display: "flex", flexDirection: "column" }}
           >
-            <Breadcrumbs
-              navigation={navigation}
-              title
-              titleBottom
-              card={false}
-              divider={false}
-            />
+            <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} />
             <Outlet />
             <Footer />
           </Box>
