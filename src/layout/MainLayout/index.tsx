@@ -31,6 +31,9 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
+  // ✅ 这里就是你之前能拿到邮箱的地方（关键）
+  const currentUser = useSelector((state: RootStateProps) => state.user.userInfo);
+
   // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
   const handleDrawerToggle = () => {
@@ -38,22 +41,35 @@ const MainLayout = () => {
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
-  // set media wise responsive drawer
+  // 响应式
   useEffect(() => {
     if (!miniDrawer) {
       setOpen(!matchDownLG);
       dispatch(openDrawer({ drawerOpen: !matchDownLG }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchDownLG]);
 
   useEffect(() => {
-    // Close drawer on route change only on small screen devices
     if (matchDownLG) {
       setOpen(false);
       dispatch(openDrawer({ drawerOpen: false }));
     }
-  }, [location.pathname, matchDownLG]); // Listen to pathname changes and screen size changes
+  }, [location.pathname, matchDownLG]);
+
+  // ================= CRISP 只传邮箱 ================= //
+  useEffect(() => {
+    if (!currentUser?.email) return;
+
+    const timer = setInterval(() => {
+      if (window.$crisp) {
+        window.$crisp.push(["set", "user:email", [currentUser.email]]);
+        clearInterval(timer);
+      }
+    }, 300);
+
+    return () => clearInterval(timer);
+  }, [currentUser]);
+  // ================================================= //
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
@@ -79,7 +95,12 @@ const MainLayout = () => {
         )}
         {!container && (
           <Box
-            sx={{ position: "relative", minHeight: "calc(100vh - 110px)", display: "flex", flexDirection: "column" }}
+            sx={{
+              position: "relative",
+              minHeight: "calc(100vh - 110px)",
+              display: "flex",
+              flexDirection: "column"
+            }}
           >
             <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} />
             <Outlet />
