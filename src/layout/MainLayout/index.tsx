@@ -18,8 +18,6 @@ import Breadcrumbs from "@/components/@extended/Breadcrumbs";
 import { RootStateProps } from "@/types/root";
 import { openDrawer } from "@/store/reducers/menu";
 
-// ==============================|| MAIN LAYOUT ||============================== //
-
 const MainLayout = () => {
   const theme = useTheme();
   const matchDownLG = useMediaQuery(theme.breakpoints.down("xl"));
@@ -31,23 +29,23 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
-  // 👇 获取当前登录用户（关键）
-  const currentUser = useSelector((state: RootStateProps) => state.user?.userInfo);
+  const currentUser = useSelector(
+    (state: RootStateProps) => state.user?.userInfo
+  );
 
-  // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
+
   const handleDrawerToggle = () => {
     setOpen(!open);
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
-  // set media wise responsive drawer
+  // responsive drawer
   useEffect(() => {
     if (!miniDrawer) {
       setOpen(!matchDownLG);
       dispatch(openDrawer({ drawerOpen: !matchDownLG }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchDownLG]);
 
   useEffect(() => {
@@ -57,37 +55,53 @@ const MainLayout = () => {
     }
   }, [location.pathname, matchDownLG]);
 
-  // ================= CRISP 用户识别 ================= //
+  // ================= CRISP 用户绑定（已优化稳定版） ================= //
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser?.email) return;
 
-    const timer = setTimeout(() => {
-      if (window.$crisp) {
-        console.log("Crisp 设置用户:", currentUser);
+    let attempts = 0;
 
-        // 邮箱
-        window.$crisp.push(["set", "user:email", [currentUser.email]]);
+    const timer = setInterval(() => {
+      attempts++;
 
-        // 昵称
+      if (window.$crisp && Array.isArray(window.$crisp)) {
+        clearInterval(timer);
+
+        console.log("Crisp 用户绑定成功:", currentUser);
+
+        // 用户邮箱（核心识别）
+        window.$crisp.push([
+          "set",
+          "user:email",
+          currentUser.email
+        ]);
+
+        // 用户昵称
         window.$crisp.push([
           "set",
           "user:nickname",
-          [currentUser.nickname || currentUser.email]
+          currentUser.nickname || currentUser.email
         ]);
 
-        // 自定义数据（客服后台可见）
+        // session 数据（客服后台可见）
         window.$crisp.push([
           "set",
           "session:data",
-          [
-            ["user_id", currentUser.id],
-            ["email", currentUser.email]
-          ]
+          {
+            user_id: String(currentUser.id),
+            email: currentUser.email,
+            nickname: currentUser.nickname || ""
+          }
         ]);
       }
-    }, 1000);
 
-    return () => clearTimeout(timer);
+      if (attempts > 20) {
+        clearInterval(timer);
+        console.warn("Crisp 初始化超时");
+      }
+    }, 300);
+
+    return () => clearInterval(timer);
   }, [currentUser]);
   // ================================================= //
 
@@ -95,8 +109,17 @@ const MainLayout = () => {
     <Box sx={{ display: "flex", width: "100%" }}>
       <Header open={open} handleDrawerToggle={handleDrawerToggle} />
       <Drawer open={open} handleDrawerToggle={handleDrawerToggle} />
-      <Box component="main" sx={{ width: "calc(100% - 260px)", flexGrow: 1, p: { xs: 2, sm: 3 } }}>
+
+      <Box
+        component="main"
+        sx={{
+          width: "calc(100% - 260px)",
+          flexGrow: 1,
+          p: { xs: 2, sm: 3 }
+        }}
+      >
         <Toolbar />
+
         {container && (
           <Container
             maxWidth="xl"
@@ -108,11 +131,18 @@ const MainLayout = () => {
               flexDirection: "column"
             }}
           >
-            <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} />
+            <Breadcrumbs
+              navigation={navigation}
+              title
+              titleBottom
+              card={false}
+              divider={false}
+            />
             <Outlet />
             <Footer />
           </Container>
         )}
+
         {!container && (
           <Box
             sx={{
@@ -122,7 +152,13 @@ const MainLayout = () => {
               flexDirection: "column"
             }}
           >
-            <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} />
+            <Breadcrumbs
+              navigation={navigation}
+              title
+              titleBottom
+              card={false}
+              divider={false}
+            />
             <Outlet />
             <Footer />
           </Box>
