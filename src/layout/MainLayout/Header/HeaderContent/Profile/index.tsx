@@ -99,14 +99,16 @@ const Profile = () => {
     setOpen(false);
   };
 
-  // ==================== 🚀 缓存优化 ==================== //
+  // ==================== 🚀 缓存优化核心 ==================== //
 
   const STORAGE_KEY = "avatar_seed";
 
+  // 👉 初始 seed（优先用缓存）
   const [seed, setSeed] = useState<string>(() => {
     return localStorage.getItem(STORAGE_KEY) || "guest";
   });
 
+  // 👉 user回来后更新 seed
   useEffect(() => {
     if (user?.email) {
       setSeed(user.email);
@@ -114,25 +116,10 @@ const Profile = () => {
     }
   }, [user]);
 
-  // ==================== ✅ Crisp 用户绑定（核心） ==================== //
-
-  useEffect(() => {
-    if (user?.email) {
-      const interval = setInterval(() => {
-        if (window.$crisp) {
-          window.$crisp.push(["set", "user:email", user.email]);
-          window.$crisp.push(["set", "user:nickname", user.email]);
-          clearInterval(interval);
-        }
-      }, 500);
-
-      return () => clearInterval(interval);
-    }
-  }, [user]);
+  // 👉 根据 seed 生成头像（永远有）
+  const avatarSvg = multiavatar(seed);
 
   // ==================== UI ==================== //
-
-  const avatarSvg = multiavatar(seed);
 
   return (
     <Box className={classes.root}>
@@ -145,6 +132,7 @@ const Profile = () => {
         onClick={handleToggle}
       >
         <Stack direction="row" spacing={2} className={classes.userInfo}>
+          {/* ✅ 顶部头像（秒开 + 不闪） */}
           <Avatar size="xs">
             <div
               dangerouslySetInnerHTML={{ __html: avatarSvg }}
@@ -186,6 +174,7 @@ const Profile = () => {
                 <MainCard elevation={0} border={false} content={false}>
                   <CardContent className={classes.cardContent}>
                     <Stack direction={"row"} className={classes.avatarStack} spacing={1}>
+                      {/* ✅ 弹窗头像 */}
                       <Avatar className={classes.userAvatar}>
                         <div
                           dangerouslySetInnerHTML={{ __html: avatarSvg }}
