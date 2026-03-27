@@ -31,8 +31,14 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
-  // ✅ 这里就是你之前能拿到邮箱的地方（关键）
-  const currentUser = useSelector((state: RootStateProps) => state.user.userInfo);
+  // 👇 尝试所有可能路径（强制兼容）
+  const state: any = useSelector((state: any) => state);
+
+  const currentUser =
+    state?.user?.userInfo ||
+    state?.user?.data?.user ||
+    state?.auth?.user ||
+    null;
 
   // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
@@ -56,20 +62,37 @@ const MainLayout = () => {
     }
   }, [location.pathname, matchDownLG]);
 
-  // ================= CRISP 只传邮箱 ================= //
+  // =================🔥 强制绑定 Crisp（核心）🔥================= //
   useEffect(() => {
-    if (!currentUser?.email) return;
+    let retry = 0;
 
-    const timer = setInterval(() => {
-      if (window.$crisp) {
-        window.$crisp.push(["set", "user:email", [currentUser.email]]);
-        clearInterval(timer);
+    const interval = setInterval(() => {
+      retry++;
+
+      const email =
+        currentUser?.email ||
+        currentUser?.user?.email ||
+        currentUser?.data?.email;
+
+      if (window.$crisp && email) {
+        console.log("✅ 强制写入 Crisp:", email);
+
+        // 强制写入邮箱
+        window.$crisp.push(["set", "user:email", [email]]);
+
+        clearInterval(interval);
+      }
+
+      // 防止死循环（最多尝试10秒）
+      if (retry > 30) {
+        clearInterval(interval);
+        console.log("❌ Crisp 绑定失败：未获取到用户");
       }
     }, 300);
 
-    return () => clearInterval(timer);
+    return () => clearInterval(interval);
   }, [currentUser]);
-  // ================================================= //
+  // ============================================================ //
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
