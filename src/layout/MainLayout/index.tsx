@@ -38,59 +38,22 @@ const MainLayout = () => {
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
-  // 响应式
+  // set media wise responsive drawer
   useEffect(() => {
     if (!miniDrawer) {
       setOpen(!matchDownLG);
       dispatch(openDrawer({ drawerOpen: !matchDownLG }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchDownLG]);
 
   useEffect(() => {
+    // Close drawer on route change only on small screen devices
     if (matchDownLG) {
       setOpen(false);
       dispatch(openDrawer({ drawerOpen: false }));
     }
-  }, [location.pathname, matchDownLG]);
-
-  // =================🔥 最终解决：API 获取用户 + Crisp 绑定 🔥================= //
-  useEffect(() => {
-    let retry = 0;
-
-    const timer = setInterval(async () => {
-      try {
-        const res = await fetch("/api/v1/user/info", {
-          credentials: "include"
-        });
-
-        const data = await res.json();
-        const email = data?.data?.email;
-
-        if (window.$crisp && email) {
-          console.log("✅ Crisp 绑定成功:", email);
-
-          // ❗关键：重置 session（否则一直 Visitor）
-          window.$crisp.push(["do", "session:reset"]);
-
-          // 设置邮箱
-          window.$crisp.push(["set", "user:email", [email]]);
-
-          clearInterval(timer);
-        }
-      } catch (e) {
-        // 忽略错误继续重试
-      }
-
-      retry++;
-      if (retry > 20) {
-        clearInterval(timer);
-        console.log("❌ Crisp 绑定失败：API 未获取到用户");
-      }
-    }, 500);
-
-    return () => clearInterval(timer);
-  }, []);
-  // ======================================================================== //
+  }, [location.pathname, matchDownLG]); // Listen to pathname changes and screen size changes
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
@@ -116,12 +79,7 @@ const MainLayout = () => {
         )}
         {!container && (
           <Box
-            sx={{
-              position: "relative",
-              minHeight: "calc(100vh - 110px)",
-              display: "flex",
-              flexDirection: "column"
-            }}
+            sx={{ position: "relative", minHeight: "calc(100vh - 110px)", display: "flex", flexDirection: "column" }}
           >
             <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} />
             <Outlet />
