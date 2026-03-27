@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -13,6 +13,9 @@ import Footer from "./Footer";
 import navigation from "@/menu-items";
 import useConfig from "@/hooks/useConfig";
 import Breadcrumbs from "@/components/@extended/Breadcrumbs";
+
+// ✅ 新增：获取用户
+import { useGetUserInfoQuery } from "@/store/services/api";
 
 // types
 import { RootStateProps } from "@/types/root";
@@ -31,6 +34,12 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
+  // ✅ 用户信息
+  const { data: user, isLoading } = useGetUserInfoQuery();
+
+  // ✅ 防止重复绑定
+  const crispBoundRef = useRef(false);
+
   // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
   const handleDrawerToggle = () => {
@@ -48,19 +57,45 @@ const MainLayout = () => {
   }, [matchDownLG]);
 
   useEffect(() => {
-    // Close drawer on route change only on small screen devices
     if (matchDownLG) {
       setOpen(false);
       dispatch(openDrawer({ drawerOpen: false }));
     }
-  }, [location.pathname, matchDownLG]); // Listen to pathname changes and screen size changes
+  }, [location.pathname, matchDownLG]);
+
+  // ==================== ✅ Crisp 用户绑定（最终版） ==================== //
+
+  useEffect(() => {
+    if (!isLoading && user?.email && !crispBoundRef.current) {
+      const interval = setInterval(() => {
+        if (window.$crisp) {
+          console.log("✅ Crisp 绑定成功:", user.email);
+
+          window.$crisp.push(["set", "user:email", user.email]);
+          window.$crisp.push(["set", "user:nickname", user.email]);
+
+          // 👉 可扩展（以后你可以加）
+          // window.$crisp.push(["set", "session:data", [[["plan", "free"]]]]);
+
+          crispBoundRef.current = true; // ✅ 标记已绑定
+          clearInterval(interval);
+        }
+      }, 500);
+
+      return () => clearInterval(interval);
+    }
+  }, [user, isLoading]);
+
+  // ==================== UI ==================== //
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
       <Header open={open} handleDrawerToggle={handleDrawerToggle} />
       <Drawer open={open} handleDrawerToggle={handleDrawerToggle} />
+
       <Box component="main" sx={{ width: "calc(100% - 260px)", flexGrow: 1, p: { xs: 2, sm: 3 } }}>
         <Toolbar />
+
         {container && (
           <Container
             maxWidth="xl"
@@ -77,9 +112,15 @@ const MainLayout = () => {
             <Footer />
           </Container>
         )}
+
         {!container && (
           <Box
-            sx={{ position: "relative", minHeight: "calc(100vh - 110px)", display: "flex", flexDirection: "column" }}
+            sx={{
+              position: "relative",
+              minHeight: "calc(100vh - 110px)",
+              display: "flex",
+              flexDirection: "column"
+            }}
           >
             <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} />
             <Outlet />
