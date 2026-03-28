@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -13,9 +13,6 @@ import Footer from "./Footer";
 import navigation from "@/menu-items";
 import useConfig from "@/hooks/useConfig";
 import Breadcrumbs from "@/components/@extended/Breadcrumbs";
-
-// ✅ 用户接口
-import { useGetUserInfoQuery } from "@/store/services/api";
 
 // types
 import { RootStateProps } from "@/types/root";
@@ -34,15 +31,6 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
-  // ✅ 登录状态
-  const isLoggedIn = useSelector((state: RootStateProps) => state.auth.isLoggedIn);
-
-  // ✅ 用户数据
-  const { data: user, isLoading } = useGetUserInfoQuery();
-
-  // ✅ 防重复执行（开发环境很重要）
-  const lastEmailRef = useRef<string | null>(null);
-
   // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
   const handleDrawerToggle = () => {
@@ -50,66 +38,30 @@ const MainLayout = () => {
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
-  // 响应式 drawer
+  // set media wise responsive drawer
   useEffect(() => {
     if (!miniDrawer) {
       setOpen(!matchDownLG);
       dispatch(openDrawer({ drawerOpen: !matchDownLG }));
     }
-  }, [matchDownLG, miniDrawer, dispatch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchDownLG]);
 
   useEffect(() => {
+    // Close drawer on route change only on small screen devices
     if (matchDownLG) {
       setOpen(false);
       dispatch(openDrawer({ drawerOpen: false }));
     }
-  }, [location.pathname, matchDownLG, dispatch]);
-
-  // ==================== ✅ Crisp 登录绑定（核心修复） ==================== //
-  useEffect(() => {
-    if (!isLoading && user?.email && window.$crisp) {
-      // ✅ 防止重复绑定同一个用户
-      if (lastEmailRef.current === user.email) return;
-
-      console.log("👤 Crisp 切换用户:", user.email);
-
-      // 🔥 关键：每次登录前都 reset（防串号）
-      window.$crisp.push(["do", "session:reset"]);
-
-      // ✅ 绑定邮箱
-      window.$crisp.push(["set", "user:email", user.email]);
-
-      // ✅ 记录当前用户
-      lastEmailRef.current = user.email;
-    }
-  }, [user?.email, isLoading]);
-
-  // ==================== ✅ 登出清理 ==================== //
-  useEffect(() => {
-    if (!isLoggedIn && window.$crisp) {
-      console.log("🧹 Crisp 已重置（登出）");
-
-      window.$crisp.push(["do", "session:reset"]);
-
-      // ✅ 清空记录（允许下次重新绑定）
-      lastEmailRef.current = null;
-    }
-  }, [isLoggedIn]);
-
-  // ==================== UI ==================== //
+  }, [location.pathname, matchDownLG]); // Listen to pathname changes and screen size changes
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
       <Header open={open} handleDrawerToggle={handleDrawerToggle} />
       <Drawer open={open} handleDrawerToggle={handleDrawerToggle} />
-
-      <Box
-        component="main"
-        sx={{ width: "calc(100% - 260px)", flexGrow: 1, p: { xs: 2, sm: 3 } }}
-      >
+      <Box component="main" sx={{ width: "calc(100% - 260px)", flexGrow: 1, p: { xs: 2, sm: 3 } }}>
         <Toolbar />
-
-        {container ? (
+        {container && (
           <Container
             maxWidth="xl"
             sx={{
@@ -120,32 +72,16 @@ const MainLayout = () => {
               flexDirection: "column"
             }}
           >
-            <Breadcrumbs
-              navigation={navigation}
-              title
-              titleBottom
-              card={false}
-              divider={false}
-            />
+            <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} />
             <Outlet />
             <Footer />
           </Container>
-        ) : (
+        )}
+        {!container && (
           <Box
-            sx={{
-              position: "relative",
-              minHeight: "calc(100vh - 110px)",
-              display: "flex",
-              flexDirection: "column"
-            }}
+            sx={{ position: "relative", minHeight: "calc(100vh - 110px)", display: "flex", flexDirection: "column" }}
           >
-            <Breadcrumbs
-              navigation={navigation}
-              title
-              titleBottom
-              card={false}
-              divider={false}
-            />
+            <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} />
             <Outlet />
             <Footer />
           </Box>
