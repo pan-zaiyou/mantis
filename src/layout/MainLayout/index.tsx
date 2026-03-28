@@ -34,14 +34,14 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
-  // ✅ 登录状态（用于登出清理）
+  // ✅ 登录状态
   const isLoggedIn = useSelector((state: RootStateProps) => state.auth.isLoggedIn);
 
   // ✅ 用户数据
   const { data: user, isLoading } = useGetUserInfoQuery();
 
-  // ✅ 防重复绑定
-  const crispBoundRef = useRef(false);
+  // ✅ 防重复执行（开发环境很重要）
+  const lastEmailRef = useRef<string | null>(null);
 
   // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
@@ -65,69 +65,34 @@ const MainLayout = () => {
     }
   }, [location.pathname, matchDownLG, dispatch]);
 
-  // ==================== ✅ 时间格式修复 ==================== //
-  const formatExpire = (date?: string) => {
-    if (!date) return "Unknown";
-    try {
-      const d = new Date(date);
-      if (isNaN(d.getTime())) return "Invalid";
-      return d.toISOString().split("T")[0];
-    } catch {
-      return "Invalid";
-    }
-  };
-
-  // ==================== ✅ Crisp 用户绑定 ==================== //
+  // ==================== ✅ Crisp 登录绑定（核心修复） ==================== //
   useEffect(() => {
-    if (!isLoading && user?.email && !crispBoundRef.current) {
-      const interval = setInterval(() => {
-        if (window.$crisp) {
-          console.log("✅ Crisp 绑定（中等方案）:", user);
+    if (!isLoading && user?.email && window.$crisp) {
+      // ✅ 防止重复绑定同一个用户
+      if (lastEmailRef.current === user.email) return;
 
-          // ✅ 邮箱
-          window.$crisp.push(["set", "user:email", user.email]);
+      console.log("👤 Crisp 切换用户:", user.email);
 
-          // ✅ 数据（稳定字段）
-          window.$crisp.push([
-            "set",
-            "session:data",
-            [[
-              ["Plan", user.plan || "Free"],
-              ["Expires", formatExpire(user.expired_at)]
-            ]]
-          ]);
+      // 🔥 关键：每次登录前都 reset（防串号）
+      window.$crisp.push(["do", "session:reset"]);
 
-          // ✅ 标签（是否过期）
-          const isExpired =
-            user.expired_at &&
-            new Date(user.expired_at).getTime() < Date.now();
+      // ✅ 绑定邮箱
+      window.$crisp.push(["set", "user:email", user.email]);
 
-          window.$crisp.push([
-            "set",
-            "session:segments",
-            [isExpired ? "expired" : "active"]
-          ]);
-
-          crispBoundRef.current = true;
-          clearInterval(interval);
-        }
-      }, 500);
-
-      return () => clearInterval(interval);
+      // ✅ 记录当前用户
+      lastEmailRef.current = user.email;
     }
-  }, [user, isLoading]);
+  }, [user?.email, isLoading]);
 
-  // ==================== ✅ 登出清理 Crisp ==================== //
+  // ==================== ✅ 登出清理 ==================== //
   useEffect(() => {
-    if (!isLoggedIn) {
-      if (window.$crisp) {
-        console.log("🧹 Crisp 已重置（用户登出）");
+    if (!isLoggedIn && window.$crisp) {
+      console.log("🧹 Crisp 已重置（登出）");
 
-        window.$crisp.push(["do", "session:reset"]);
-      }
+      window.$crisp.push(["do", "session:reset"]);
 
-      // 允许下次重新绑定
-      crispBoundRef.current = false;
+      // ✅ 清空记录（允许下次重新绑定）
+      lastEmailRef.current = null;
     }
   }, [isLoggedIn]);
 
