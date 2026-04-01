@@ -38,6 +38,20 @@ const MainLayout = () => {
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
+  // ✅ ⭐⭐⭐ 关键：Crisp 用户绑定（解决 visitor 问题）
+  useEffect(() => {
+    try {
+      const email = localStorage.getItem("crisp_email");
+
+      if (email && window.$crisp) {
+        window.$crisp.push(["set", "user:email", [email]]);
+        window.$crisp.push(["set", "user:nickname", [email]]);
+      }
+    } catch (e) {
+      console.error("Crisp runtime error:", e);
+    }
+  }, [location.pathname]); // ⭐ 路由变化也会重新绑定
+
   // set media wise responsive drawer
   useEffect(() => {
     if (!miniDrawer) {
@@ -53,7 +67,7 @@ const MainLayout = () => {
       setOpen(false);
       dispatch(openDrawer({ drawerOpen: false }));
     }
-  }, [location.pathname, matchDownLG]); // Listen to pathname changes and screen size changes
+  }, [location.pathname, matchDownLG]);
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
