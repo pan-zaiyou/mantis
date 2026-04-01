@@ -12,11 +12,11 @@
   <meta name="repository" content="https://跨越长城.com" />
   <meta name="robots" content="index,follow" />
 
-  <!-- ✅ Crisp 最终稳定版 -->
+  <!-- ✅ Crisp 最终稳定版（防 visitor + 防重复用户） -->
   <script type="text/javascript">
     window.$crisp = [];
 
-    // ✅ ① 初始化前设置（kycc逻辑）
+    // ✅ ① 初始化前绑定用户（关键）
     (function () {
       try {
         var email = localStorage.getItem("crisp_email");
@@ -24,6 +24,7 @@
         if (email) {
           window.$crisp.push(["set", "user:email", [email]]);
           window.$crisp.push(["set", "user:nickname", [email]]);
+          window.$crisp.push(["set", "session:identifier", [email]]); // ⭐ 关键（解决双用户）
         }
       } catch (e) {
         console.error("Crisp preload error:", e);
@@ -41,7 +42,7 @@
       d.getElementsByTagName("head")[0].appendChild(s);
     })();
 
-    // ✅ ② 兜底（100% 生效关键）
+    // ✅ ② 页面加载后兜底（防止丢失）
     window.addEventListener("load", function () {
       try {
         var email = localStorage.getItem("crisp_email");
@@ -49,6 +50,7 @@
         if (email && window.$crisp) {
           window.$crisp.push(["set", "user:email", [email]]);
           window.$crisp.push(["set", "user:nickname", [email]]);
+          window.$crisp.push(["set", "session:identifier", [email]]); // ⭐ 必须同步
         }
       } catch (e) {
         console.error("Crisp load fix error:", e);
@@ -62,6 +64,7 @@
   <div id="root"></div>
 
   <script src="/src/index.tsx" type="module"></script>
+
   <script>
     window.global = window;
   </script>
