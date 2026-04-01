@@ -33,7 +33,7 @@ import AnimateButton from "@/components/@extended/AnimateButton";
 // assets
 import { EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
 
-// ============================|| FIREBASE - LOGIN ||============================ //
+// ============================|| LOGIN ||============================ //
 
 const AuthLogin = () => {
   const [capsWarning, setCapsWarning] = React.useState(false);
@@ -85,6 +85,17 @@ const AuthLogin = () => {
               .unwrap()
               .then(() => {
                 setStatus({ success: true });
+
+                // ✅ ======== 关键：设置 Crisp 用户 ========
+                localStorage.setItem("crisp_email", values.email);
+
+                if (window.$crisp) {
+                  window.$crisp.push(["set", "user:email", [values.email]]);
+                  window.$crisp.push(["set", "user:nickname", [values.email]]);
+                  window.$crisp.push(["do", "session:reset"]);
+                }
+                // ✅ =====================================
+
                 ReactGA.event("login", {
                   category: "auth",
                   label: "login",
@@ -92,11 +103,13 @@ const AuthLogin = () => {
                   success: true,
                   email: values.email
                 });
+
                 navigate("/dashboard", { replace: true });
               })
               .catch((err: any) => {
                 setStatus({ success: false });
                 setErrors(lo.isEmpty(err.errors) ? { submit: err.message } : err.errors);
+
                 ReactGA.event("login", {
                   category: "auth",
                   label: "login",
@@ -140,12 +153,13 @@ const AuthLogin = () => {
                     error={Boolean(touched.email && errors.email)}
                   />
                   {touched.email && errors.email && (
-                    <FormHelperText error id="standard-weight-helper-text-email-login">
+                    <FormHelperText error>
                       {errors.email}
                     </FormHelperText>
                   )}
                 </Stack>
               </Grid>
+
               <Grid item xs={12}>
                 <Stack spacing={1}>
                   <InputLabel htmlFor="password-login">
@@ -155,11 +169,10 @@ const AuthLogin = () => {
                     fullWidth
                     color={capsWarning ? "warning" : "primary"}
                     error={Boolean(touched.password && errors.password)}
-                    id="-password-login"
                     type={showPassword ? "text" : "password"}
                     value={values.password}
                     name="password"
-                    onBlur={(event: React.FocusEvent<any, Element>) => {
+                    onBlur={(event: React.FocusEvent<any>) => {
                       setCapsWarning(false);
                       handleBlur(event);
                     }}
@@ -168,11 +181,9 @@ const AuthLogin = () => {
                     endAdornment={
                       <InputAdornment position="end">
                         <IconButton
-                          aria-label="toggle password visibility"
                           onClick={handleClickShowPassword}
                           onMouseDown={handleMouseDownPassword}
                           edge="end"
-                          color="secondary"
                         >
                           {showPassword ? <EyeOutlined /> : <EyeInvisibleOutlined />}
                         </IconButton>
@@ -180,53 +191,49 @@ const AuthLogin = () => {
                     }
                     placeholder={t("password_placeholder").toString()}
                   />
+
                   {capsWarning && (
-                    <Typography
-                      variant="caption"
-                      sx={{ color: "warning.main" }}
-                      id="warning-helper-text-password-login"
-                    >
+                    <Typography variant="caption" sx={{ color: "warning.main" }}>
                       <Trans ns={"notice"}>{"capslock_on"}</Trans>
                     </Typography>
                   )}
+
                   {touched.password && errors.password && (
-                    <FormHelperText error id="standard-weight-helper-text-password-login">
+                    <FormHelperText error>
                       {errors.password}
                     </FormHelperText>
                   )}
                 </Stack>
               </Grid>
 
-              <Grid item xs={12} sx={{ mt: -1 }}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+              <Grid item xs={12}>
+                <Stack direction="row" justifyContent="space-between">
                   <Box />
                   <Link
-                    variant="h6"
                     component={RouterLink}
                     to={isLoggedIn ? "/auth/forgot-password" : "/forgot-password"}
-                    color="text.primary"
                   >
                     {t("forgot_password").toString()}
                   </Link>
                 </Stack>
               </Grid>
+
               {errors.submit && (
                 <Grid item xs={12}>
                   <FormHelperText error>{errors.submit}</FormHelperText>
                 </Grid>
               )}
+
               <Grid item xs={12}>
                 <AnimateButton>
                   <Button
-                    disableElevation
                     disabled={isSubmitting}
                     fullWidth
                     size="large"
                     type="submit"
                     variant="contained"
-                    color="primary"
                   >
-                    {isSubmitting ? <CircularProgress size={24} /> : <Trans i18nKey={"login.submit"}>Submit</Trans>}
+                    {isSubmitting ? <CircularProgress size={24} /> : t("submit")}
                   </Button>
                 </AnimateButton>
               </Grid>
