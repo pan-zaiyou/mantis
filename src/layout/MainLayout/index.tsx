@@ -38,7 +38,7 @@ const MainLayout = () => {
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
-  // ✅ ⭐⭐⭐ 关键：Crisp 用户绑定（解决 visitor 问题）
+  // ✅ ⭐⭐⭐ Crisp 用户绑定（最终版）
   useEffect(() => {
     try {
       const email = localStorage.getItem("crisp_email");
@@ -46,11 +46,12 @@ const MainLayout = () => {
       if (email && window.$crisp) {
         window.$crisp.push(["set", "user:email", [email]]);
         window.$crisp.push(["set", "user:nickname", [email]]);
+        window.$crisp.push(["set", "session:identifier", [email]]); // ⭐ 关键（解决两个用户）
       }
     } catch (e) {
       console.error("Crisp runtime error:", e);
     }
-  }, [location.pathname]); // ⭐ 路由变化也会重新绑定
+  }, [location.pathname]); // ⭐ 路由变化就重新绑定
 
   // set media wise responsive drawer
   useEffect(() => {
