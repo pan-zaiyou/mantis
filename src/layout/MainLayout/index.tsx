@@ -18,6 +18,13 @@ import Breadcrumbs from "@/components/@extended/Breadcrumbs";
 import { RootStateProps } from "@/types/root";
 import { openDrawer } from "@/store/reducers/menu";
 
+// 👇 加这个（避免 TS 报错）
+declare global {
+  interface Window {
+    $crisp: any;
+  }
+}
+
 // ==============================|| MAIN LAYOUT ||============================== //
 
 const MainLayout = () => {
@@ -31,6 +38,9 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
+  // 👇 获取用户信息（确保你 store 里有 user）
+  const user = useSelector((state: RootStateProps) => state.user);
+
   // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
   const handleDrawerToggle = () => {
@@ -38,29 +48,53 @@ const MainLayout = () => {
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
-  // set media wise responsive drawer
+  // 响应式 drawer
   useEffect(() => {
     if (!miniDrawer) {
       setOpen(!matchDownLG);
       dispatch(openDrawer({ drawerOpen: !matchDownLG }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchDownLG]);
 
   useEffect(() => {
-    // Close drawer on route change only on small screen devices
     if (matchDownLG) {
       setOpen(false);
       dispatch(openDrawer({ drawerOpen: false }));
     }
-  }, [location.pathname, matchDownLG]); // Listen to pathname changes and screen size changes
+  }, [location.pathname, matchDownLG]);
+
+  // ================== ✅ 核心：Crisp 显示用户账号 ==================
+  useEffect(() => {
+    if (!user || !user.email) return;
+
+    const timer = setInterval(() => {
+      if (window.$crisp) {
+        // 👇 只设置账号（核心）
+        window.$crisp.push(["set", "user:email", [user.email]]);
+
+        clearInterval(timer);
+      }
+    }, 300);
+
+    return () => clearInterval(timer);
+  }, [user]);
+  // =============================================================
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
       <Header open={open} handleDrawerToggle={handleDrawerToggle} />
       <Drawer open={open} handleDrawerToggle={handleDrawerToggle} />
-      <Box component="main" sx={{ width: "calc(100% - 260px)", flexGrow: 1, p: { xs: 2, sm: 3 } }}>
+
+      <Box
+        component="main"
+        sx={{
+          width: "calc(100% - 260px)",
+          flexGrow: 1,
+          p: { xs: 2, sm: 3 }
+        }}
+      >
         <Toolbar />
+
         {container && (
           <Container
             maxWidth="xl"
@@ -77,9 +111,15 @@ const MainLayout = () => {
             <Footer />
           </Container>
         )}
+
         {!container && (
           <Box
-            sx={{ position: "relative", minHeight: "calc(100vh - 110px)", display: "flex", flexDirection: "column" }}
+            sx={{
+              position: "relative",
+              minHeight: "calc(100vh - 110px)",
+              display: "flex",
+              flexDirection: "column"
+            }}
           >
             <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} />
             <Outlet />
