@@ -18,13 +18,6 @@ import Breadcrumbs from "@/components/@extended/Breadcrumbs";
 import { RootStateProps } from "@/types/root";
 import { openDrawer } from "@/store/reducers/menu";
 
-// 👇 防止 TS 报错
-declare global {
-  interface Window {
-    $crisp: any;
-  }
-}
-
 // ==============================|| MAIN LAYOUT ||============================== //
 
 const MainLayout = () => {
@@ -38,9 +31,6 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
-  // 👇 用户信息（根据你的实际结构自动兼容）
-  const user = useSelector((state: RootStateProps) => state.user);
-
   // drawer toggler
   const [open, setOpen] = useState(!miniDrawer || drawerOpen);
   const handleDrawerToggle = () => {
@@ -48,69 +38,29 @@ const MainLayout = () => {
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
-  // 响应式 drawer
+  // set media wise responsive drawer
   useEffect(() => {
     if (!miniDrawer) {
       setOpen(!matchDownLG);
       dispatch(openDrawer({ drawerOpen: !matchDownLG }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchDownLG]);
 
   useEffect(() => {
+    // Close drawer on route change only on small screen devices
     if (matchDownLG) {
       setOpen(false);
       dispatch(openDrawer({ drawerOpen: false }));
     }
-  }, [location.pathname, matchDownLG]);
-
-  // ================== ✅ Crisp 显示账号（最终版） ==================
-  useEffect(() => {
-    if (!user) return;
-
-    // 👇 兼容不同结构
-    const email =
-      user?.email ||
-      user?.userInfo?.email ||
-      user?.data?.email;
-
-    if (!email) return;
-
-    const timer = setInterval(() => {
-      if (window.$crisp) {
-        // 👇 关键：重置 session（否则一直 visitor）
-        window.$crisp.push(["do", "session:reset"]);
-
-        // 👇 让左侧列表显示账号
-        window.$crisp.push(["set", "user:nickname", [email]]);
-
-        // 👇 后台详情使用
-        window.$crisp.push(["set", "user:email", [email]]);
-
-        console.log("Crisp 已绑定用户:", email);
-
-        clearInterval(timer);
-      }
-    }, 300);
-
-    return () => clearInterval(timer);
-  }, [user]);
-  // ============================================================
+  }, [location.pathname, matchDownLG]); // Listen to pathname changes and screen size changes
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
       <Header open={open} handleDrawerToggle={handleDrawerToggle} />
       <Drawer open={open} handleDrawerToggle={handleDrawerToggle} />
-
-      <Box
-        component="main"
-        sx={{
-          width: "calc(100% - 260px)",
-          flexGrow: 1,
-          p: { xs: 2, sm: 3 }
-        }}
-      >
+      <Box component="main" sx={{ width: "calc(100% - 260px)", flexGrow: 1, p: { xs: 2, sm: 3 } }}>
         <Toolbar />
-
         {container && (
           <Container
             maxWidth="xl"
@@ -127,15 +77,9 @@ const MainLayout = () => {
             <Footer />
           </Container>
         )}
-
         {!container && (
           <Box
-            sx={{
-              position: "relative",
-              minHeight: "calc(100vh - 110px)",
-              display: "flex",
-              flexDirection: "column"
-            }}
+            sx={{ position: "relative", minHeight: "calc(100vh - 110px)", display: "flex", flexDirection: "column" }}
           >
             <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} />
             <Outlet />
