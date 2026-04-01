@@ -12,11 +12,11 @@
   <meta name="repository" content="https://跨越长城.com" />
   <meta name="robots" content="index,follow" />
 
-  <!-- ✅ Crisp（已改好） -->
+  <!-- ✅ Crisp 最终稳定版 -->
   <script type="text/javascript">
     window.$crisp = [];
 
-    // ✅ 核心：加载前读取用户（kycc关键逻辑）
+    // ✅ ① 初始化前设置（kycc逻辑）
     (function () {
       try {
         var email = localStorage.getItem("crisp_email");
@@ -32,6 +32,7 @@
 
     window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
 
+    // 加载 Crisp
     (function () {
       var d = document;
       var s = d.createElement("script");
@@ -39,6 +40,20 @@
       s.async = 1;
       d.getElementsByTagName("head")[0].appendChild(s);
     })();
+
+    // ✅ ② 兜底（100% 生效关键）
+    window.addEventListener("load", function () {
+      try {
+        var email = localStorage.getItem("crisp_email");
+
+        if (email && window.$crisp) {
+          window.$crisp.push(["set", "user:email", [email]]);
+          window.$crisp.push(["set", "user:nickname", [email]]);
+        }
+      } catch (e) {
+        console.error("Crisp load fix error:", e);
+      }
+    });
   </script>
 
 </head>
