@@ -18,7 +18,7 @@ import Breadcrumbs from "@/components/@extended/Breadcrumbs";
 import { RootStateProps } from "@/types/root";
 import { openDrawer } from "@/store/reducers/menu";
 
-// 👇 加这个（避免 TS 报错）
+// 👇 防止 TS 报错
 declare global {
   interface Window {
     $crisp: any;
@@ -38,7 +38,7 @@ const MainLayout = () => {
   const menu = useSelector((state: RootStateProps) => state.menu);
   const { drawerOpen } = menu;
 
-  // 👇 获取用户信息（确保你 store 里有 user）
+  // 👇 用户信息（根据你的实际结构自动兼容）
   const user = useSelector((state: RootStateProps) => state.user);
 
   // drawer toggler
@@ -63,14 +63,30 @@ const MainLayout = () => {
     }
   }, [location.pathname, matchDownLG]);
 
-  // ================== ✅ 核心：Crisp 显示用户账号 ==================
+  // ================== ✅ Crisp 显示账号（最终版） ==================
   useEffect(() => {
-    if (!user || !user.email) return;
+    if (!user) return;
+
+    // 👇 兼容不同结构
+    const email =
+      user?.email ||
+      user?.userInfo?.email ||
+      user?.data?.email;
+
+    if (!email) return;
 
     const timer = setInterval(() => {
       if (window.$crisp) {
-        // 👇 只设置账号（核心）
-        window.$crisp.push(["set", "user:email", [user.email]]);
+        // 👇 关键：重置 session（否则一直 visitor）
+        window.$crisp.push(["do", "session:reset"]);
+
+        // 👇 让左侧列表显示账号
+        window.$crisp.push(["set", "user:nickname", [email]]);
+
+        // 👇 后台详情使用
+        window.$crisp.push(["set", "user:email", [email]]);
+
+        console.log("Crisp 已绑定用户:", email);
 
         clearInterval(timer);
       }
@@ -78,7 +94,7 @@ const MainLayout = () => {
 
     return () => clearInterval(timer);
   }, [user]);
-  // =============================================================
+  // ============================================================
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
