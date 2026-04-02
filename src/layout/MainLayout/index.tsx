@@ -38,20 +38,6 @@ const MainLayout = () => {
     dispatch(openDrawer({ drawerOpen: !open }));
   };
 
-  // ✅ ⭐ Crisp 用户绑定（只更新用户信息，不再设置 session）
-  useEffect(() => {
-    try {
-      const email = localStorage.getItem("crisp_email");
-
-      if (email && window.$crisp) {
-        window.$crisp.push(["set", "user:email", [email]]);
-        window.$crisp.push(["set", "user:nickname", [email]]);
-      }
-    } catch (e) {
-      console.error("Crisp runtime error:", e);
-    }
-  }, [location.pathname]); // 路由变化时重新绑定（SPA 必备）
-
   // set media wise responsive drawer
   useEffect(() => {
     if (!miniDrawer) {
@@ -67,7 +53,7 @@ const MainLayout = () => {
       setOpen(false);
       dispatch(openDrawer({ drawerOpen: false }));
     }
-  }, [location.pathname, matchDownLG]);
+  }, [location.pathname, matchDownLG]); // Listen to pathname changes and screen size changes
 
   return (
     <Box sx={{ display: "flex", width: "100%" }}>
