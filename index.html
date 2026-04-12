@@ -13,7 +13,18 @@
   <meta name="repository" content="https://跨越长城.com" />
   <meta name="robots" content="index,follow" />
 
-  <!-- ❌ 已删除 Crisp 预加载（避免 visitor） -->
+  <!-- ✅ 恢复 Crisp（稳定版） -->
+  <script type="text/javascript">
+    window.$crisp = [];
+    window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
+    (function () {
+      var d = document;
+      var s = d.createElement("script");
+      s.src = "https://client.crisp.chat/l.js";
+      s.async = 1;
+      d.getElementsByTagName("head")[0].appendChild(s);
+    })();
+  </script>
 
 </head>
 
