@@ -16,31 +16,29 @@
     window.$crisp = [];
     window.CRISP_WEBSITE_ID = "c74512c4-6fe1-4a0e-92eb-8041501fddbc";
 
-    // 1. 核心修复：在 Crisp 还没启动前，尝试从 LocalStorage 提取身份
-    (function () {
+    // 定义识别函数
+    const identifyUser = () => {
       try {
-        const userData = localStorage.getItem('user'); // Mantis 的默认存储 Key
+        const userData = localStorage.getItem('user');
         if (userData) {
           const user = JSON.parse(userData);
-          // 兼容多种数据结构
           const email = user.email || (user.data && user.data.email);
-          const nickname = user.nickname || (user.data && user.data.nickname);
-          
           if (email) {
-            // 【关键】必须在加载 l.js 之前 push，这会让 Crisp 尝试合并会话
+            // 只有当发现是新登录或者还没设置时才执行
             window.$crisp.push(["set", "user:email", [email]]);
-            if (nickname) {
-              window.$crisp.push(["set", "user:nickname", [nickname]]);
+            if (user.nickname) {
+              window.$crisp.push(["set", "user:nickname", [user.nickname]]);
             }
+            return true;
           }
         }
-      } catch (e) {
-        console.warn("Crisp identity extraction failed", e);
-      }
-    })();
+      } catch (e) {}
+      return false;
+    };
 
-    // 2. 加载 Crisp 官方库
+    // 1. 初始化加载
     (function () {
+      identifyUser(); // 加载前试一次
       var d = document;
       var s = d.createElement("script");
       s.src = "https://client.crisp.chat/l.js";
@@ -48,31 +46,44 @@
       d.getElementsByTagName("head")[0].appendChild(s);
     })();
 
-    // 3. 持续同步：处理登录后的身份变更，同时合并 Visitor 信息
-    setInterval(function () {
-      if (window.$crisp) {
-        try {
-          const userData = localStorage.getItem('user');
-          if (userData) {
-            const user = JSON.parse(userData);
-            const email = user.email || (user.data && user.data.email);
-            if (email) {
-              // 持续推送 Email，确保 Crisp 强制关联当前会话轨迹
-              window.$crisp.push(["set", "user:email", [email]]);
-            }
-          }
-        } catch (e) {}
+    // 2. 核心修复：监听 Crisp 准备就绪后的动作
+    window.CRISP_READY_TRIGGER = function() {
+      // 如果已经有邮箱了，尝试 reset 会话以强行合并 visitor
+      const hasUser = identifyUser();
+      if (hasUser && window.$crisp.is("chat:closed")) {
+          // 这个指令非常强力，它会强制合并当前的访客轨迹到邮箱下
+          window.$crisp.push(["do", "session:reset"]);
+          identifyUser();
       }
-    }, 5000); // 5秒检查一次即可
+    };
+
+    // 3. 针对 Mantis 登录不刷新页面的处理
+    let lastEmail = "";
+    setInterval(function () {
+      try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          const user = JSON.parse(userData);
+          const currentEmail = user.email || (user.data && user.data.email);
+          
+          // 如果检测到邮箱从无到有，说明刚刚登录，强制重置会话
+          if (currentEmail && currentEmail !== lastEmail) {
+            window.$crisp.push(["set", "user:email", [currentEmail]]);
+            // 如果是第一次检测到登录，执行一次 reset 消除 visitor 影子
+            if (lastEmail === "") {
+                window.$crisp.push(["do", "session:reset"]);
+            }
+            lastEmail = currentEmail;
+          }
+        }
+      } catch (e) {}
+    }, 4000);
   </script>
-  </head>
+</head>
 <body>
   <noscript>You need to enable JavaScript to run this app.</noscript>
   <div id="root"></div>
-  
   <script src="/src/index.tsx" type="module"></script>
-  <script>
-    window.global = window;
-  </script>
+  <script>window.global = window;</script>
 </body>
 </html>
