@@ -9,10 +9,13 @@ import { logout } from "@/store/reducers/auth";
 const useAuthStateDetector = () => {
   const dispatch = useDispatch();
   const isLogin = useSelector((state) => state.auth.isLoggedIn);
-  const { error } = useGetUserInfoQuery(undefined, {
+
+  // ✅ 这里加 data
+  const { data, error } = useGetUserInfoQuery(undefined, {
     skip: !isLogin
   });
 
+  // ❗ 原本逻辑（保持不变）
   useEffect(() => {
     if (!lo.isEmpty(error)) {
       console.error(error);
@@ -25,7 +28,17 @@ const useAuthStateDetector = () => {
         }
       }
     }
-  }, [error]);
+  }, [error, dispatch]);
+
+  // ✅ 新增：绑定 Crisp 用户信息
+  useEffect(() => {
+    const user = data?.data;
+
+    if (window.$crisp && user?.email) {
+      window.$crisp.push(["set", "user:email", [user.email]]);
+      window.$crisp.push(["set", "user:nickname", [user.email]]);
+    }
+  }, [data]);
 
   return isLogin;
 };
