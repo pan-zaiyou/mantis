@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import lo from "lodash-es";
 
 // project imports
@@ -13,6 +13,9 @@ const useAuthStateDetector = () => {
   const { data, error } = useGetUserInfoQuery(undefined, {
     skip: !isLogin
   });
+
+  // ✅ 防止重复执行
+  const hasBindCrisp = useRef(false);
 
   // ❗ 原本逻辑（保持不变）
   useEffect(() => {
@@ -29,24 +32,28 @@ const useAuthStateDetector = () => {
     }
   }, [error, dispatch]);
 
-  // ✅ 关键：稳定绑定 Crisp 用户
+  // ✅ 绑定 Crisp（修复版）
   useEffect(() => {
     const user = data?.data;
 
     if (!user?.email) return;
 
-    // 封装一个重试函数（确保 Crisp 已加载）
+    // ❗ 关键：只执行一次
+    if (hasBindCrisp.current) return;
+
     const bindCrisp = () => {
       if (window.$crisp) {
-        // 🔥 重置会话（避免 visitor 残留）
+        // 🔥 只 reset 一次
         window.$crisp.push(["do", "session:reset"]);
 
-        // 绑定用户信息
+        // 绑定用户
         window.$crisp.push(["set", "user:email", [user.email]]);
         window.$crisp.push(["set", "user:nickname", [user.email]]);
+
+        // 标记已执行
+        hasBindCrisp.current = true;
       } else {
-        // 如果 Crisp 还没加载，等待再试
-        setTimeout(bindCrisp, 500);
+        setTimeout(bindCrisp, 300);
       }
     };
 
