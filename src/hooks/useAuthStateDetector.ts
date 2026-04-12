@@ -10,7 +10,6 @@ const useAuthStateDetector = () => {
   const dispatch = useDispatch();
   const isLogin = useSelector((state) => state.auth.isLoggedIn);
 
-  // ✅ 这里加 data
   const { data, error } = useGetUserInfoQuery(undefined, {
     skip: !isLogin
   });
@@ -30,11 +29,15 @@ const useAuthStateDetector = () => {
     }
   }, [error, dispatch]);
 
-  // ✅ 新增：绑定 Crisp 用户信息
+  // ✅ 修复 visitor 问题（关键在这里）
   useEffect(() => {
     const user = data?.data;
 
     if (window.$crisp && user?.email) {
+      // 🔥 关键：重置会话，避免 visitor 残留
+      window.$crisp.push(["do", "session:reset"]);
+
+      // 重新绑定用户
       window.$crisp.push(["set", "user:email", [user.email]]);
       window.$crisp.push(["set", "user:nickname", [user.email]]);
     }
