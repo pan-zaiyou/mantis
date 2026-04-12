@@ -1,7 +1,4 @@
 import { useEffect, useRef } from "react";
-import lo from "lodash-es";
-
-// project imports
 import { useDispatch, useSelector } from "@/store";
 import { useGetUserInfoQuery } from "@/store/services/api";
 import { logout } from "@/store/reducers/auth";
@@ -9,47 +6,39 @@ import { logout } from "@/store/reducers/auth";
 const useAuthStateDetector = () => {
   const dispatch = useDispatch();
   const isLogin = useSelector((state) => state.auth.isLoggedIn);
+  const { data, error } = useGetUserInfoQuery(undefined, { skip: !isLogin });
 
-  const { data, error } = useGetUserInfoQuery(undefined, {
-    skip: !isLogin
-  });
+  const hasBindUser = useRef(false);
 
-  const hasBindCrisp = useRef(false);
-
+  // 错误处理逻辑
   useEffect(() => {
-    if (!lo.isEmpty(error)) {
+    if (error) {
       console.error(error);
-
-      if (lo.isNumber((error as any).status)) {
-        switch ((error as any).status) {
-          case 401:
-          case 403:
-            dispatch(logout());
-        }
+      if (error.status === 401 || error.status === 403) {
+        dispatch(logout());
       }
     }
   }, [error, dispatch]);
 
-  // ✅ 不再 reset
+  // 绑定已登录用户邮箱
   useEffect(() => {
     const user = data?.data;
-
     if (!user?.email) return;
-    if (hasBindCrisp.current) return;
+    if (hasBindUser.current) return;
 
-    const bindCrisp = () => {
+    hasBindUser.current = true;
+
+    const bindUser = () => {
       if (window.$crisp) {
-        // ✅ 直接覆盖 visitor
+        // 覆盖 visitor，显示邮箱
         window.$crisp.push(["set", "user:email", [user.email]]);
         window.$crisp.push(["set", "user:nickname", [user.email]]);
-
-        hasBindCrisp.current = true;
       } else {
-        setTimeout(bindCrisp, 300);
+        setTimeout(bindUser, 300);
       }
     };
 
-    bindCrisp();
+    bindUser();
   }, [data]);
 
   return isLogin;
