@@ -8,7 +8,6 @@ const useAuthStateDetector = () => {
   const isLogin = useSelector((state) => state.auth.isLoggedIn);
 
   const { data, error } = useGetUserInfoQuery(undefined, { skip: !isLogin });
-
   const hasBindUser = useRef(false);
 
   // 错误处理逻辑
