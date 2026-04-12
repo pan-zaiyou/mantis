@@ -11,34 +11,35 @@
   <meta name="copyright" content="Crosswall Network Technology Co.,Ltd." />
   <meta name="repository" content="https://跨越长城.com" />
   <meta name="robots" content="index,follow" />
-  
+
   <script type="text/javascript">
     window.$crisp = [];
     window.CRISP_WEBSITE_ID = "c74512c4-6fe1-4a0e-92eb-8041501fddbc";
 
-    // 【核心优化：预识别逻辑】
-    // 在加载 Crisp 脚本之前，先尝试获取用户信息，防止产生双重会话
+    // 1. 核心修复：在 Crisp 还没启动前，尝试从 LocalStorage 提取身份
     (function () {
       try {
-        const userData = localStorage.getItem('user'); // Mantis 默认 Key
+        const userData = localStorage.getItem('user'); // Mantis 的默认存储 Key
         if (userData) {
           const user = JSON.parse(userData);
+          // 兼容多种数据结构
           const email = user.email || (user.data && user.data.email);
+          const nickname = user.nickname || (user.data && user.data.nickname);
+          
           if (email) {
-            // 在 Crisp 启动前就将身份注入数组
+            // 【关键】必须在加载 l.js 之前 push，这会让 Crisp 尝试合并会话
             window.$crisp.push(["set", "user:email", [email]]);
-            // 如果有昵称也顺便设置
-            if (user.nickname) {
-              window.$crisp.push(["set", "user:nickname", [user.nickname]]);
+            if (nickname) {
+              window.$crisp.push(["set", "user:nickname", [nickname]]);
             }
           }
         }
       } catch (e) {
-        console.error("Crisp pre-sync error", e);
+        console.warn("Crisp identity extraction failed", e);
       }
     })();
 
-    // 加载 Crisp 官方库
+    // 2. 加载 Crisp 官方库
     (function () {
       var d = document;
       var s = d.createElement("script");
@@ -47,22 +48,24 @@
       d.getElementsByTagName("head")[0].appendChild(s);
     })();
 
-    // 【二次兜底：针对登录动作的监听】
-    // 防止用户在不刷新页面的情况下登录，每3秒检查一次状态变化
+    // 3. 持续同步：处理登录后的身份变更，同时合并 Visitor 信息
     setInterval(function () {
-      try {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-          const user = JSON.parse(userData);
-          const email = user.email || (user.data && user.data.email);
-          if (email && window.$crisp) {
-            window.$crisp.push(["set", "user:email", [email]]);
+      if (window.$crisp) {
+        try {
+          const userData = localStorage.getItem('user');
+          if (userData) {
+            const user = JSON.parse(userData);
+            const email = user.email || (user.data && user.data.email);
+            if (email) {
+              // 持续推送 Email，确保 Crisp 强制关联当前会话轨迹
+              window.$crisp.push(["set", "user:email", [email]]);
+            }
           }
-        }
-      } catch (e) {}
-    }, 3000);
+        } catch (e) {}
+      }
+    }, 5000); // 5秒检查一次即可
   </script>
-</head>
+  </head>
 <body>
   <noscript>You need to enable JavaScript to run this app.</noscript>
   <div id="root"></div>
