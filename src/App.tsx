@@ -28,6 +28,7 @@ import { logout } from "@/store/reducers/auth";
 const App = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
+
   usePageAnalyticsEffect();
   const isLogin = useAuthStateDetector();
   useHtmlLangSelector();
@@ -35,7 +36,7 @@ const App = () => {
 
   const location = useLocation();
 
-  // 页面变化同步 Crisp
+  // 页面状态同步给 Crisp（已登录邮箱和 visitor 都会同步）
   useEffect(() => {
     if (window.$crisp) {
       window.$crisp.push([
@@ -46,9 +47,10 @@ const App = () => {
     }
   }, [location.pathname]);
 
-  // Logout 函数示例（按钮调用即可）
+  // 登出处理
   const handleLogout = () => {
     if (window.$crisp) {
+      // 清理邮箱信息，恢复 visitor
       window.$crisp.push(["set", "user:email", []]);
       window.$crisp.push(["set", "user:nickname", []]);
     }
@@ -66,7 +68,7 @@ const App = () => {
               autoHideDuration={4000}
               dense
             >
-              {/* 可在任何按钮绑定 handleLogout */}
+              {/* 可以在任何按钮绑定 handleLogout */}
               <Routes />
               <GlobalStyles
                 styles={{
