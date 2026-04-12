@@ -1,80 +1,58 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta charset="utf-8" />
-  <link href="/favicon.svg" rel="icon" />
-  <meta content="#ffffff" name="theme-color" />
-  <link href="/apple-touch-icon.png" rel="apple-touch-icon" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>跨越长城</title>
-  <meta name="description" content="跨越长城是一个综合性的网络代理隧道服务商，向客户提供高速稳定的服务" />
-  <meta name="copyright" content="Crosswall Network Technology Co.,Ltd." />
-  <meta name="repository" content="https://跨越长城.com" />
-  <meta name="robots" content="index,follow" />
-
+  
   <script type="text/javascript">
     window.$crisp = [];
-    window.CRISP_WEBSITE_ID = "c74512c4-6fe1-4a0e-92eb-8041501fddbc";
+    window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
 
-    // 核心工具函数：获取邮箱
-    function getV2UserEmail() {
+    // 1. 核心逻辑：获取并锁定用户信息
+    function syncCrispIdentity() {
       try {
         const userData = localStorage.getItem('user');
-        if (!userData) return null;
-        const user = JSON.parse(userData);
-        return user.email || (user.data && user.data.email) || null;
-      } catch (e) { return null; }
+        if (userData) {
+          const user = JSON.parse(userData);
+          const email = user.email || (user.data && user.data.email);
+          if (email) {
+            // 如果已经在运行，先重置再设置，强制消除 Visitor 影子
+            if (window.$crisp.is && window.$crisp.is("chat:loaded")) {
+               // 只有当前身份不是该邮箱时才重置，避免循环刷新
+               if (window.$crisp.get("user:email") !== email) {
+                  window.$crisp.push(["do", "session:reset"]);
+                  window.$crisp.push(["set", "user:email", [email]]);
+               }
+            } else {
+              // 初始加载时直接设置
+              window.$crisp.push(["set", "user:email", [email]]);
+            }
+            if (user.nickname) window.$crisp.push(["set", "user:nickname", [user.nickname]]);
+            return true;
+          }
+        }
+      } catch (e) {}
+      return false;
     }
 
-    // 真正的加载函数
-    function loadCrisp(email) {
-      if (email) {
-        window.$crisp.push(["set", "user:email", [email]]);
-      }
-      if (document.getElementById('crisp-js')) return; // 防止重复加载
-      
+    // 2. 预判加载
+    (function () {
+      syncCrispIdentity(); // 脚本加载前先声明身份
       var d = document;
       var s = d.createElement("script");
-      s.id = "crisp-js";
       s.src = "https://client.crisp.chat/l.js";
       s.async = 1;
       d.getElementsByTagName("head")[0].appendChild(s);
-    }
-
-    // --- 策略：立即检查 + 循环监听 ---
-    (function() {
-      const initialEmail = getV2UserEmail();
-      
-      // 1. 如果一开始就有邮箱（已登录状态进入），直接加载
-      if (initialEmail) {
-        loadCrisp(initialEmail);
-      } else {
-        // 2. 如果没登录，先不加载 Crisp，或者等待 2 秒再加载
-        // 这样可以给 Mantis 的接口请求留出时间
-        setTimeout(() => {
-          const delayedEmail = getV2UserEmail();
-          loadCrisp(delayedEmail);
-        }, 2000);
-      }
-
-      // 3. 处理登录/注销这种身份切换
-      let currentBoundEmail = initialEmail;
-      setInterval(() => {
-        const latestEmail = getV2UserEmail();
-        
-        // 如果发现从“没邮箱”变成了“有邮箱”（刚登录成功）
-        if (latestEmail && latestEmail !== currentBoundEmail) {
-          if (window.$crisp.is && window.$crisp.is("chat:loaded")) {
-            // 关键：如果已经加载了访客身份，强制重置并绑定新邮箱
-            window.$crisp.push(["do", "session:reset"]);
-            window.$crisp.push(["set", "user:email", [latestEmail]]);
-          } else {
-            loadCrisp(latestEmail);
-          }
-          currentBoundEmail = latestEmail;
-        }
-      }, 3000);
     })();
+
+    // 3. 针对 Mantis 路由切换的动态监听
+    window.addEventListener('load', function() {
+      // 登录后通常会有 URL 变化或 Storage 变化，每隔 5 秒执行一次硬核对齐
+      setInterval(function() {
+        syncCrispIdentity();
+      }, 5000);
+    });
   </script>
 </head>
 <body>
