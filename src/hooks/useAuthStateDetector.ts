@@ -6,6 +6,7 @@ import { logout } from "@/store/reducers/auth";
 const useAuthStateDetector = () => {
   const dispatch = useDispatch();
   const isLogin = useSelector((state) => state.auth.isLoggedIn);
+
   const { data, error } = useGetUserInfoQuery(undefined, { skip: !isLogin });
 
   const hasBindUser = useRef(false);
@@ -30,7 +31,6 @@ const useAuthStateDetector = () => {
 
     const bindUser = () => {
       if (window.$crisp) {
-        // 覆盖 visitor，显示邮箱
         window.$crisp.push(["set", "user:email", [user.email]]);
         window.$crisp.push(["set", "user:nickname", [user.email]]);
       } else {
