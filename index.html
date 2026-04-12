@@ -13,70 +13,80 @@
       window.$crisp = [];
       window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
       
-      // --- 工具函数：从 Mantis 存储中提取邮箱 ---
+      // --- 内部变量：记录当前已同步的邮箱 ---
+      window.__LAST_SYNCED_EMAIL = null;
+
+      // 工具函数：获取本地存储中的最新邮箱
       function getAuthEmail() {
         try {
           const userData = JSON.parse(localStorage.getItem('user') || '{}');
-          // 适配 Mantis 可能存在的多种嵌套结构
           return userData.email || (userData.data && userData.data.email) || null;
-        } catch (e) {
-          return null;
-        }
+        } catch (e) { return null; }
       }
 
-      // --- 核心函数：带身份加载 Crisp ---
-      function loadCrispRuntime(email) {
-        if (window.__CRISP_INITIALIZED) return;
-
-        // 1. 如果有邮箱，在脚本执行前注入身份数组（关键：防止产生双会话）
-        if (email) {
+      // 核心函数：同步身份并处理重置逻辑
+      function syncAndLoadCrisp(email) {
+        // 情况 1：Crisp 尚未加载
+        if (!window.__CRISP_INITIALIZED) {
+          if (email) {
+            window.$crisp.push(["set", "user:email", [email]]);
+            window.__LAST_SYNCED_EMAIL = email;
+            console.log("✅ 首次加载：识别到会员身份", email);
+          }
+          
+          var d = document;
+          var s = d.createElement("script");
+          s.src = "https://client.crisp.chat/l.js";
+          s.async = 1;
+          d.getElementsByTagName("head")[0].appendChild(s);
+          window.__CRISP_INITIALIZED = true;
+        } 
+        // 情况 2：Crisp 已加载，但检测到账号切换（解决换号产生的双对话）
+        else if (email && email !== window.__LAST_SYNCED_EMAIL) {
+          console.log("🔄 检测到账号切换，强制重置会话...");
+          window.$crisp.push(["do", "session:reset"]);
           window.$crisp.push(["set", "user:email", [email]]);
-          console.log("✅ 检测到用户信息，正在以会员身份初始化 Crisp...");
-        } else {
-          console.log("ℹ️ 未检测到登录信息，以访客身份初始化...");
+          window.__LAST_SYNCED_EMAIL = email;
         }
-
-        // 2. 动态插入脚本
-        var d = document;
-        var s = d.createElement("script");
-        s.src = "https://client.crisp.chat/l.js";
-        s.async = 1;
-        d.getElementsByTagName("head")[0].appendChild(s);
-        
-        window.__CRISP_INITIALIZED = true;
       }
 
-      // --- 加载策略：模仿 kycc 的按需触发 ---
+      // --- 智能加载策略 ---
       const isAuthPage = /login|register/.test(window.location.pathname);
 
       if (!isAuthPage) {
-        // 场景 A：已经在后台或非登录页
-        const email = getAuthEmail();
-        if (email) {
-          // 情况 1：本地已有缓存，直接加载
-          loadCrispRuntime(email);
+        const initialEmail = getAuthEmail();
+        if (initialEmail) {
+          syncAndLoadCrisp(initialEmail);
         } else {
-          // 情况 2：数据可能还在加载中，开启高频探测
+          // 异步探测（针对 React 写入数据延迟）
           const detector = setInterval(() => {
-            const retryEmail = getAuthEmail();
-            if (retryEmail) {
-              loadCrispRuntime(retryEmail);
+            const currentEmail = getAuthEmail();
+            if (currentEmail) {
+              syncAndLoadCrisp(currentEmail);
               clearInterval(detector);
             }
-          }, 500); // 每 500ms 探测一次
+          }, 500);
 
-          // 场景 B：兜底处理。如果是真访客（5秒没登录），则加载基础版
+          // 访客兜底：5秒后若还没拿到邮箱，加载普通版
           setTimeout(() => {
             if (!window.__CRISP_INITIALIZED) {
-              loadCrispRuntime(null); 
+              syncAndLoadCrisp(null);
               clearInterval(detector);
             }
           }, 5000);
         }
       } else {
-        // 场景 C：处于登录/注册页。物理切断 Crisp 链接，杜绝生成 visitor ID
-        console.log("🚫 登录/注册页面：已物理屏蔽 Crisp 加载，防止身份冲突。");
+        console.log("🚫 登录/注册页面：物理屏蔽 Crisp 以防身份冲突");
       }
+
+      // --- 关键增强：实时监听 Storage 变化 ---
+      // 当用户在另一个标签页登录或退出时，本页面能自动响应
+      window.addEventListener('storage', function(e) {
+        if (e.key === 'user') {
+          const newEmail = getAuthEmail();
+          if (newEmail) syncAndLoadCrisp(newEmail);
+        }
+      });
     })();
   </script>
 </head>
