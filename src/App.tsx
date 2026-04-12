@@ -21,16 +21,21 @@ import useAuthStateDetector from "@/hooks/useAuthStateDetector";
 import useHtmlLangSelector from "@/hooks/useHtmlLangSelector";
 import useTitle from "@/hooks/useTitle";
 
+// store
+import { useDispatch } from "@/store";
+import { logout } from "@/store/reducers/auth";
+
 const App = () => {
   const theme = useTheme();
+  const dispatch = useDispatch();
   usePageAnalyticsEffect();
-  useAuthStateDetector();
+  const isLogin = useAuthStateDetector();
   useHtmlLangSelector();
   useTitle(null);
 
   const location = useLocation();
 
-  // 页面变化同步给 Crisp
+  // 页面变化同步 Crisp
   useEffect(() => {
     if (window.$crisp) {
       window.$crisp.push([
@@ -40,6 +45,15 @@ const App = () => {
       ]);
     }
   }, [location.pathname]);
+
+  // Logout 函数示例（按钮调用即可）
+  const handleLogout = () => {
+    if (window.$crisp) {
+      window.$crisp.push(["set", "user:email", []]);
+      window.$crisp.push(["set", "user:nickname", []]);
+    }
+    dispatch(logout());
+  };
 
   return (
     <CacheProvider value={cache}>
@@ -52,6 +66,7 @@ const App = () => {
               autoHideDuration={4000}
               dense
             >
+              {/* 可在任何按钮绑定 handleLogout */}
               <Routes />
               <GlobalStyles
                 styles={{
