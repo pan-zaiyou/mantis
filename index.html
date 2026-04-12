@@ -9,14 +9,26 @@
 
   <script type="text/javascript">
     (function () {
-      // --- 配置区 ---
       window.$crisp = [];
       window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
-      
-      // --- 内部变量：记录当前已同步的邮箱 ---
       window.__LAST_SYNCED_EMAIL = null;
 
-      // 工具函数：获取本地存储中的最新邮箱
+      // --- 核心增强：暴力清除 Crisp 缓存 ---
+      function clearCrispCache() {
+        try {
+          // 清除可能存在的本地存储
+          localStorage.removeItem('crisp-client/session');
+          localStorage.removeItem('crisp-client/settings');
+          // 清除 Cookie (针对所有路径)
+          document.cookie.split(";").forEach(function(c) {
+            if (c.trim().startsWith("crisp-client")) {
+              document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            }
+          });
+          console.log("🧹 已清理旧的 Crisp 缓存，准备初始化新身份...");
+        } catch (e) {}
+      }
+
       function getAuthEmail() {
         try {
           const userData = JSON.parse(localStorage.getItem('user') || '{}');
@@ -24,14 +36,14 @@
         } catch (e) { return null; }
       }
 
-      // 核心函数：同步身份并处理重置逻辑
       function syncAndLoadCrisp(email) {
-        // 情况 1：Crisp 尚未加载
         if (!window.__CRISP_INITIALIZED) {
+          // 如果是以登录状态启动，加载前先清一次缓存，确保不带入 visitor 影子
+          if (email) clearCrispCache();
+          
           if (email) {
             window.$crisp.push(["set", "user:email", [email]]);
             window.__LAST_SYNCED_EMAIL = email;
-            console.log("✅ 首次加载：识别到会员身份", email);
           }
           
           var d = document;
@@ -41,16 +53,14 @@
           d.getElementsByTagName("head")[0].appendChild(s);
           window.__CRISP_INITIALIZED = true;
         } 
-        // 情况 2：Crisp 已加载，但检测到账号切换（解决换号产生的双对话）
         else if (email && email !== window.__LAST_SYNCED_EMAIL) {
-          console.log("🔄 检测到账号切换，强制重置会话...");
+          // 换号重置
           window.$crisp.push(["do", "session:reset"]);
           window.$crisp.push(["set", "user:email", [email]]);
           window.__LAST_SYNCED_EMAIL = email;
         }
       }
 
-      // --- 智能加载策略 ---
       const isAuthPage = /login|register/.test(window.location.pathname);
 
       if (!isAuthPage) {
@@ -58,7 +68,6 @@
         if (initialEmail) {
           syncAndLoadCrisp(initialEmail);
         } else {
-          // 异步探测（针对 React 写入数据延迟）
           const detector = setInterval(() => {
             const currentEmail = getAuthEmail();
             if (currentEmail) {
@@ -67,7 +76,6 @@
             }
           }, 500);
 
-          // 访客兜底：5秒后若还没拿到邮箱，加载普通版
           setTimeout(() => {
             if (!window.__CRISP_INITIALIZED) {
               syncAndLoadCrisp(null);
@@ -75,12 +83,8 @@
             }
           }, 5000);
         }
-      } else {
-        console.log("🚫 登录/注册页面：物理屏蔽 Crisp 以防身份冲突");
       }
 
-      // --- 关键增强：实时监听 Storage 变化 ---
-      // 当用户在另一个标签页登录或退出时，本页面能自动响应
       window.addEventListener('storage', function(e) {
         if (e.key === 'user') {
           const newEmail = getAuthEmail();
@@ -93,10 +97,7 @@
 <body>
   <noscript>You need to enable JavaScript to run this app.</noscript>
   <div id="root"></div>
-  
   <script src="/src/index.tsx" type="module"></script>
-  <script>
-    window.global = window;
-  </script>
+  <script>window.global = window;</script>
 </body>
 </html>
