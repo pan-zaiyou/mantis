@@ -3,61 +3,90 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <link href="/favicon.svg" rel="icon" />
   <title>跨越长城</title>
-  
+  <meta name="description" content="跨越长城是一个综合性的网络代理隧道服务商" />
+
   <script type="text/javascript">
-    window.$crisp = [];
-    window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
-
-    // 1. 核心逻辑：获取并锁定用户信息
-    function syncCrispIdentity() {
-      try {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-          const user = JSON.parse(userData);
-          const email = user.email || (user.data && user.data.email);
-          if (email) {
-            // 如果已经在运行，先重置再设置，强制消除 Visitor 影子
-            if (window.$crisp.is && window.$crisp.is("chat:loaded")) {
-               // 只有当前身份不是该邮箱时才重置，避免循环刷新
-               if (window.$crisp.get("user:email") !== email) {
-                  window.$crisp.push(["do", "session:reset"]);
-                  window.$crisp.push(["set", "user:email", [email]]);
-               }
-            } else {
-              // 初始加载时直接设置
-              window.$crisp.push(["set", "user:email", [email]]);
-            }
-            if (user.nickname) window.$crisp.push(["set", "user:nickname", [user.nickname]]);
-            return true;
-          }
-        }
-      } catch (e) {}
-      return false;
-    }
-
-    // 2. 预判加载
     (function () {
-      syncCrispIdentity(); // 脚本加载前先声明身份
-      var d = document;
-      var s = d.createElement("script");
-      s.src = "https://client.crisp.chat/l.js";
-      s.async = 1;
-      d.getElementsByTagName("head")[0].appendChild(s);
-    })();
+      // --- 配置区 ---
+      window.$crisp = [];
+      window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
+      
+      // --- 工具函数：从 Mantis 存储中提取邮箱 ---
+      function getAuthEmail() {
+        try {
+          const userData = JSON.parse(localStorage.getItem('user') || '{}');
+          // 适配 Mantis 可能存在的多种嵌套结构
+          return userData.email || (userData.data && userData.data.email) || null;
+        } catch (e) {
+          return null;
+        }
+      }
 
-    // 3. 针对 Mantis 路由切换的动态监听
-    window.addEventListener('load', function() {
-      // 登录后通常会有 URL 变化或 Storage 变化，每隔 5 秒执行一次硬核对齐
-      setInterval(function() {
-        syncCrispIdentity();
-      }, 5000);
-    });
+      // --- 核心函数：带身份加载 Crisp ---
+      function loadCrispRuntime(email) {
+        if (window.__CRISP_INITIALIZED) return;
+
+        // 1. 如果有邮箱，在脚本执行前注入身份数组（关键：防止产生双会话）
+        if (email) {
+          window.$crisp.push(["set", "user:email", [email]]);
+          console.log("✅ 检测到用户信息，正在以会员身份初始化 Crisp...");
+        } else {
+          console.log("ℹ️ 未检测到登录信息，以访客身份初始化...");
+        }
+
+        // 2. 动态插入脚本
+        var d = document;
+        var s = d.createElement("script");
+        s.src = "https://client.crisp.chat/l.js";
+        s.async = 1;
+        d.getElementsByTagName("head")[0].appendChild(s);
+        
+        window.__CRISP_INITIALIZED = true;
+      }
+
+      // --- 加载策略：模仿 kycc 的按需触发 ---
+      const isAuthPage = /login|register/.test(window.location.pathname);
+
+      if (!isAuthPage) {
+        // 场景 A：已经在后台或非登录页
+        const email = getAuthEmail();
+        if (email) {
+          // 情况 1：本地已有缓存，直接加载
+          loadCrispRuntime(email);
+        } else {
+          // 情况 2：数据可能还在加载中，开启高频探测
+          const detector = setInterval(() => {
+            const retryEmail = getAuthEmail();
+            if (retryEmail) {
+              loadCrispRuntime(retryEmail);
+              clearInterval(detector);
+            }
+          }, 500); // 每 500ms 探测一次
+
+          // 场景 B：兜底处理。如果是真访客（5秒没登录），则加载基础版
+          setTimeout(() => {
+            if (!window.__CRISP_INITIALIZED) {
+              loadCrispRuntime(null); 
+              clearInterval(detector);
+            }
+          }, 5000);
+        }
+      } else {
+        // 场景 C：处于登录/注册页。物理切断 Crisp 链接，杜绝生成 visitor ID
+        console.log("🚫 登录/注册页面：已物理屏蔽 Crisp 加载，防止身份冲突。");
+      }
+    })();
   </script>
 </head>
 <body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
   <div id="root"></div>
+  
   <script src="/src/index.tsx" type="module"></script>
-  <script>window.global = window;</script>
+  <script>
+    window.global = window;
+  </script>
 </body>
 </html>
