@@ -3,51 +3,24 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <link href="/favicon.svg" rel="icon" />
   <title>跨越长城</title>
+  <meta name="description" content="跨越长城是一个综合性的网络代理隧道服务商" />
 
   <script type="text/javascript">
     window.$crisp = [];
     window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
-
-    // 1. 深度同步函数：由 React 逻辑手动触发或定时触发
-    window.__SYNC_CRISP = function(email, nickname) {
-      if (!window.$crisp) return;
-      
-      // 如果当前已经加载了其他账号，立即重置会话
-      if (window.__LAST_EMAIL && window.__LAST_EMAIL !== email) {
-        window.$crisp.push(["do", "session:reset"]);
-      }
-
-      if (email) {
-        window.$crisp.push(["set", "user:email", [email]]);
-        if (nickname) window.$crisp.push(["set", "user:nickname", [nickname]]);
-        window.__LAST_EMAIL = email;
-      }
-    };
-
     (function () {
-      // 2. 预判加载：如果 LocalStorage 里已经有用户了，带身份启动
-      try {
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const email = user.email || (user.data && user.data.email);
-        if (email) {
-          window.$crisp.push(["set", "user:email", [email]]);
-          window.__LAST_EMAIL = email;
-        }
-      } catch (e) {}
-
-      // 3. 延迟加载脚本，给 React 渲染留出 1 秒的“黄金时间”
-      setTimeout(function() {
-        var d = document;
-        var s = d.createElement("script");
-        s.src = "https://client.crisp.chat/l.js";
-        s.async = 1;
-        d.getElementsByTagName("head")[0].appendChild(s);
-      }, 1000);
+      var d = document;
+      var s = d.createElement("script");
+      s.src = "https://client.crisp.chat/l.js";
+      s.async = 1;
+      d.getElementsByTagName("head")[0].appendChild(s);
     })();
   </script>
 </head>
 <body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
   <div id="root"></div>
   <script src="/src/index.tsx" type="module"></script>
   <script>window.global = window;</script>
