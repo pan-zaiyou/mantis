@@ -30,64 +30,58 @@ const App = () => {
   useHtmlLangSelector();
   useTitle(null);
 
-  // --- 【全套模仿 kycc：身份驱动加载逻辑】 ---
+  // --- 【Crisp 智能大脑：解决路径不显示 & 多账号切换】 ---
   useEffect(() => {
-    const syncCrisp = () => {
+    const handleCrispSync = () => {
       try {
-        // 1. 获取用户信息
         const rawUser = localStorage.getItem('user');
         const user = rawUser ? JSON.parse(rawUser) : null;
-        const email = user?.email || user?.data?.email || null;
+        const currentEmail = user?.email || user?.data?.email || null;
 
-        // 【核心逻辑 A】：检测到登录，但脚本还没加载
-        if (email && !(window as any).__CRISP_LOADED) {
-          console.log("🛠️ 正在模仿 kycc 逻辑：预埋身份并启动 Crisp...");
-          
-          // 在脚本加载前，先塞入身份信息。这样脚本一出生就是会员身份。
-          window.$crisp.push(["set", "user:email", [email]]);
-          if (user.nickname) {
-            window.$crisp.push(["set", "user:nickname", [user.nickname]]);
+        // 获取已同步的“身份锁”
+        const lastSyncedEmail = window.sessionStorage.getItem('crisp_identity_lock');
+
+        if (window.$crisp) {
+          // 逻辑 1：如果检测到新登录，或账号更换
+          if (currentEmail && currentEmail !== lastSyncedEmail) {
+            // 关键动作：重置会话并绑定新邮箱，防止出现 visitor45 这种影子
+            window.$crisp.push(["do", "session:reset"]);
+            window.$crisp.push(["set", "user:email", [currentEmail]]);
+            if (user.nickname) {
+              window.$crisp.push(["set", "user:nickname", [user.nickname]]);
+            }
+            window.sessionStorage.setItem('crisp_identity_lock', currentEmail);
+            console.log("✅ Crisp 身份已切换至:", currentEmail);
           }
 
-          // 动态注入脚本（手动唤醒）
-          const d = document;
-          const s = d.createElement("script");
-          s.src = "https://client.crisp.chat/l.js";
-          s.async = true;
-          d.getElementsByTagName("head")[0].appendChild(s);
-          
-          (window as any).__CRISP_LOADED = true;
-          (window as any).__LAST_EMAIL = email;
-        } 
-        
-        // 【核心逻辑 B】：换号检测（解决多账号并存/对话残留）
-        else if (email && (window as any).__LAST_EMAIL && email !== (window as any).__LAST_EMAIL) {
-          console.log("🔄 检测到账号切换，正在强制重置对话...");
-          window.$crisp.push(["do", "session:reset"]);
-          window.$crisp.push(["set", "user:email", [email]]);
-          (window as any).__LAST_EMAIL = email;
-        }
+          // 逻辑 2：如果用户退出了
+          if (!currentEmail && lastSyncedEmail) {
+            window.$crisp.push(["do", "session:reset"]);
+            window.sessionStorage.removeItem('crisp_identity_lock');
+            console.log("ℹ️ 用户已登出，重置 Crisp 会话");
+          }
 
-        // 【核心逻辑 C】：解决路径不实时显示的问题
-        // 既然 SPA 切换不触发 Crisp 自动感应，我们就每 2 秒手动推一次路径
-        if (window.$crisp && (window as any).__CRISP_LOADED) {
+          // 逻辑 3：解决实时显示浏览页面的问题（路径补丁）
+          // 强制向 Crisp 后台推送当前页面信息
           window.$crisp.push(["set", "session:data", [[
-            ["current_path", window.location.pathname],
-            ["page_title", document.title]
+            ["last_path", window.location.pathname],
+            ["page_name", document.title || "仪表盘"]
           ]]]);
         }
       } catch (e) {
-        console.error("Crisp Sync Error:", e);
+        // 静默处理错误
       }
     };
 
-    // 启动监听器（2秒同步一次，确保 100% 对齐）
-    syncCrisp();
-    const timer = setInterval(syncCrisp, 2000);
+    // 1. 初始化执行
+    handleCrispSync();
 
-    return () => clearInterval(timer);
+    // 2. 每 2.5 秒扫描一次状态（解决 SPA 路由跳转不更新的问题）
+    const interval = setInterval(handleCrispSync, 2500);
+
+    return () => clearInterval(interval);
   }, []);
-  // --- 【逻辑结束】 ---
+  // --- 【智能大脑结束】 ---
 
   return (
     <CacheProvider value={cache}>
@@ -96,10 +90,7 @@ const App = () => {
           <ScrollTop>
             <SnackbarProvider
               maxSnack={3}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "center"
-              }}
+              anchorOrigin={{ vertical: "top", horizontal: "center" }}
               autoHideDuration={4000}
               dense
             >
