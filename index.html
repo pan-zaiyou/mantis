@@ -1,29 +1,46 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
-  <meta charset="utf-8" />
-  <title>跨越长城</title>
-  <script type="text/javascript">
-    window.$crisp = [];
-    window.CRISP_WEBSITE_ID = "c74512c4-6fe1-4a0e-92eb-8041501fddbc";
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <link href="/favicon.svg" rel="icon" />
+    <title>跨越长城</title>
+    <meta name="description" content="跨越长城 - 天下武功 唯快不破" />
 
-    // 【核心优化】脚本预载逻辑
-    // 检查本地是否有上次登录留下的邮箱，如果有，直接在脚本加载前锁定身份
-    const savedEmail = window.sessionStorage.getItem('crisp_synced_email');
-    if (savedEmail) {
-      window.$crisp.push(["set", "user:email", [savedEmail]]);
-    }
+    <script type="text/javascript">
+      window.$crisp = [];
+      window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
 
-    (function () {
-      var d = document;
-      var s = d.createElement("script");
-      s.src = "https://client.crisp.chat/l.js";
-      s.async = 1;
-      d.getElementsByTagName("head")[0].appendChild(s);
-    })();
-  </script>
-</head>
-<body>
-  <div id="root"></div>
-</body>
+      // 【核心补丁】预判身份，防止重复会话产生
+      // 在脚本运行前尝试恢复身份，让 Crisp 启动即绑定。
+      try {
+        const savedEmail = window.sessionStorage.getItem('crisp_synced_email');
+        if (savedEmail) {
+          window.$crisp.push(["set", "user:email", [savedEmail]]);
+          console.log("🚀 [Crisp] 检测到缓存身份，正在预绑定:", savedEmail);
+        }
+      } catch (e) {
+        console.error("Crisp storage error:", e);
+      }
+
+      // 标准 Crisp 加载脚本
+      (function () {
+        var d = document;
+        var s = d.createElement("script");
+        s.src = "https://client.crisp.chat/l.js";
+        s.async = 1;
+        d.getElementsByTagName("head")[0].appendChild(s);
+      })();
+    </script>
+    </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    
+    <script src="/src/index.tsx" type="module"></script>
+    
+    <script>
+      window.global = window;
+    </script>
+  </body>
 </html>
