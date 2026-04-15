@@ -12,20 +12,25 @@ const usePageAnalyticsEffect = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // 1. Google Analytics 统计
+    const fullPath = location.pathname + location.search;
+
+    // 1. 原有的 Google Analytics 统计逻辑
     ReactGA.send({
       hitType: "pageview",
-      page: location.pathname + location.search
+      page: fullPath
     });
 
-    // 2. 【Crisp 路径同步补丁】
+    // 2. 【核心补丁】实时同步路径给 Crisp
+    // 这样当用户在菜单间点击时，Crisp 后台会立即显示“正在浏览：/订阅中心”
     if (window.$crisp) {
-      // 强制向后台推送当前页面的位置和标题
       window.$crisp.push(["set", "session:data", [[
-        ["current_path", location.pathname + location.search],
-        ["page_title", document.title || "V2B Dashboard"]
+        ["current_path", fullPath],
+        ["last_browse_time", new Date().toLocaleString()]
       ]]]);
     }
+    
+    // 调试日志（上线后可删除）
+    console.log("Crisp Path Synced:", fullPath);
   }, [location]);
 
   const { isLoggedIn } = useSelector((state) => state.auth);
@@ -34,13 +39,18 @@ const usePageAnalyticsEffect = () => {
   });
 
   useEffect(() => {
-    ReactGA.set({
-      userEmail: userData?.email
-    });
+    // 3. 用户身份二次对齐（兜底逻辑）
+    if (userData?.email) {
+      ReactGA.set({
+        userEmail: userData.email
+      });
 
-    // 确保用户信息对齐
-    if (window.$crisp && userData?.email) {
-      window.$crisp.push(["set", "user:email", [userData.email]]);
+      if (window.$crisp) {
+        window.$crisp.push(["set", "user:email", [userData.email]]);
+        if (userData.nickname) {
+          window.$crisp.push(["set", "user:nickname", [userData.nickname]]);
+        }
+      }
     }
   }, [userData]);
 };
