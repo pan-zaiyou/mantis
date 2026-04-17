@@ -8,8 +8,6 @@ import {
   Button,
   FormHelperText,
   Grid,
-  IconButton,
-  InputAdornment,
   Stack,
   TextField,
   Typography,
@@ -63,7 +61,7 @@ export default function AuthRegister() {
               password_confirmation: values.password_confirmation,
             }).unwrap();
 
-            // 成功
+            // 成功逻辑（保持你原有）
             enqueueSnackbar("注册成功", { variant: "success" });
             navigate("/login", { replace: true });
 
@@ -71,27 +69,20 @@ export default function AuthRegister() {
             if (scriptedRef.current) {
               setTempValues(null);
 
-              // ✅ 关键修复：正确获取后端错误信息
+              // ✅ 核心修复（只改这里）
               const msg =
                 error?.data?.message ||
                 error?.error ||
                 error?.message ||
                 "注册失败";
 
-              // ✅ 可选优化：邮箱已存在特殊提示
-              if (msg.includes("邮箱")) {
-                enqueueSnackbar("邮箱已存在，请直接登录", {
-                  variant: "warning",
-                });
-              } else {
-                enqueueSnackbar(msg, { variant: "error" });
-              }
-
-              console.error("register error:", error);
+              enqueueSnackbar(msg, { variant: "error" });
 
               setStatus({ success: false });
               setErrors({ submit: msg });
               setSubmitting(false);
+
+              console.error("register error:", error);
             }
           }
         }}
