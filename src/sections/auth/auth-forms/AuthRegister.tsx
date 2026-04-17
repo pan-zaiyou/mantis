@@ -145,7 +145,7 @@ const AuthRegister = () => {
               label: "register",
               method: "email",
               success: false,
-              error: error.message,
+              error: error?.data?.message || error.message,
               email: values.email,
               values
             });
