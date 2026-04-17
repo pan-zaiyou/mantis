@@ -11,19 +11,6 @@
       window.$crisp = [];
       window.CRISP_WEBSITE_ID = "0d31a6be-2276-432f-bd47-ac8d962e84ae";
 
-      // 【核心补丁】预判身份，防止重复会话产生
-      // 在脚本运行前尝试恢复身份，让 Crisp 启动即绑定。
-      try {
-        const savedEmail = window.sessionStorage.getItem('crisp_synced_email');
-        if (savedEmail) {
-          window.$crisp.push(["set", "user:email", [savedEmail]]);
-          console.log("🚀 [Crisp] 检测到缓存身份，正在预绑定:", savedEmail);
-        }
-      } catch (e) {
-        console.error("Crisp storage error:", e);
-      }
-
-      // 标准 Crisp 加载脚本
       (function () {
         var d = document;
         var s = d.createElement("script");
@@ -32,7 +19,7 @@
         d.getElementsByTagName("head")[0].appendChild(s);
       })();
     </script>
-    </head>
+  </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
