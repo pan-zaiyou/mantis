@@ -139,7 +139,7 @@ const AuthRegister = () => {
           if (scriptedRef.current) {
             // 使用 Formik 的 setErrors 和 setStatus 需要通过回调传递
             setTempValues(null); // 清空临时值
-            enqueueSnackbar(error.message, { variant: "error" });
+            enqueueSnackbar(error?.data?.message || error.message, { variant: "error" });
             ReactGA.event("register", {
               category: "auth",
               label: "register",
