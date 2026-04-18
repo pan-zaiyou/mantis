@@ -36,6 +36,8 @@ import { StringColorProps } from "@/types/password";
 import { strengthColor, strengthIndicator } from "@/utils/password-strength";
 import ReactGA from "react-ga4";
 
+// ============================|| FIREBASE - FORGOT PASSWORD ||============================ //
+
 const AuthForgotPassword = () => {
   const theme = useTheme();
   const { t } = useTranslation("common");
@@ -98,51 +100,62 @@ const AuthForgotPassword = () => {
           }
 
           try {
+            // API call to reset the password
             await resetPassword({
               email: values.email,
               password: values.password,
               email_code: values.email_code
             }).unwrap();
 
-            setStatus({ success: true });
-            setSubmitting(false);
-            enqueueSnackbar(t("notice::forgot_password.reset_success"), {
-              variant: "success"
-            });
+            if (!scriptedRef.current) {
+              setStatus({ success: true });
+              setSubmitting(false);
+              enqueueSnackbar(t("notice::forgot_password.reset_success"), {
+                variant: "success"
+              });
 
-            ReactGA.event("reset_password", {
-              category: "auth",
-              label: "reset_password",
-              email: values.email,
-              success: true
-            });
-
-            // ✅ 重置成功后跳转到登录页，并传递邮箱和密码
-            navigate("/login", {
-              replace: true,
-              state: {
+              // Track the successful reset password event
+              ReactGA.event("reset_password", {
+                category: "auth",
+                label: "reset_password",
                 email: values.email,
-                password: values.password
-              }
-            });
-          } catch (err: any) {
+                success: true
+              });
+
+              // ✅ 只改这里：跳转时带上 email 和 password
+              navigate("/login", {
+                replace: true,
+                state: {
+                  email: values.email,
+                  password: values.password
+                }
+              });
+            }
+          } catch (err) {
             console.error("Error in reset password", err);
+            // Move Snackbar outside of the scriptedRef check
             enqueueSnackbar(
-              err?.data?.message || err?.message || t("notice::forgot_password.reset_failed"),
+              err.message || t("notice::forgot_password.reset_failed"),
               { variant: "error" }
             );
-            setStatus({ success: false });
-            setErrors(err.errors || { submit: err?.data?.message || err?.message });
 
-            ReactGA.event("reset_password", {
-              category: "auth",
-              label: "reset_password",
-              email: values.email,
-              success: false,
-              error: err?.message
-            });
+            if (scriptedRef.current) {
+              setStatus({ success: false });
+              setErrors(err.errors || { submit: err.message });
+
+              // Track the failed reset password event
+              ReactGA.event("reset_password", {
+                category: "auth",
+                label: "reset_password",
+                email: values.email,
+                success: false,
+                error: err.message
+              });
+            }
           } finally {
-            setSubmitting(false);
+            // if (scriptedRef.current) {
+              setSubmitting(false);
+            // }
           }
         }}
       >
@@ -221,6 +234,7 @@ const AuthForgotPassword = () => {
                   )}
                 </Stack>
               </Grid>
+
               {/* Password */}
               <Grid item xs={12}>
                 <Stack spacing={1}>
