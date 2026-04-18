@@ -1,5 +1,5 @@
 import React from "react";
-import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom"; // ✅ 新增 useLocation
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 
 // material-ui
 import {
@@ -23,6 +23,7 @@ import { Trans, useTranslation } from "react-i18next";
 import lo from "lodash-es";
 import { useUnmountedRef } from "ahooks";
 import ReactGA from "react-ga4";
+import { useSnackbar } from "notistack"; // ✅ 新增
 
 // project import
 import { useSelector } from "@/store";
@@ -41,12 +42,13 @@ const AuthLogin = () => {
   const { isLoggedIn } = useSelector((state) => state.auth);
   const [login] = useLoginMutation();
   const scriptedRef = useUnmountedRef();
+  const { enqueueSnackbar } = useSnackbar(); // ✅ 新增
 
   const { t } = useTranslation("common", {
     keyPrefix: "login"
   });
 
-  // ✅ 新增：读取从重置密码页传来的 email 和 password
+  // ✅ 读取从重置密码页传来的 email 和 password
   const location = useLocation();
   const locationState = location.state as { email?: string; password?: string } | null;
 
@@ -73,8 +75,8 @@ const AuthLogin = () => {
     <>
       <Formik
         initialValues={{
-          email: locationState?.email ?? "", // ✅ 自动填入邮箱
-          password: locationState?.password ?? "", // ✅ 自动填入密码
+          email: locationState?.email ?? "",
+          password: locationState?.password ?? "",
           submit: null
         }}
         validationSchema={Yup.object().shape({
@@ -100,7 +102,8 @@ const AuthLogin = () => {
               })
               .catch((err: any) => {
                 setStatus({ success: false });
-                setErrors(lo.isEmpty(err.errors) ? { submit: err.message } : err.errors);
+                // ✅ 改为 snackbar 显示错误
+                enqueueSnackbar(err?.data?.message || err?.message, { variant: "error" });
                 ReactGA.event("login", {
                   category: "auth",
                   label: "login",
