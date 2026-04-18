@@ -1,5 +1,5 @@
 import React from "react";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 
 // material-ui
 import {
@@ -33,8 +33,6 @@ import AnimateButton from "@/components/@extended/AnimateButton";
 // assets
 import { EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
 
-// ============================|| FIREBASE - LOGIN ||============================ //
-
 const AuthLogin = () => {
   const [capsWarning, setCapsWarning] = React.useState(false);
 
@@ -45,6 +43,10 @@ const AuthLogin = () => {
   const { t } = useTranslation("common", {
     keyPrefix: "login"
   });
+
+  // ✅ 读取从重置密码页传来的 email 和 password
+  const location = useLocation();
+  const locationState = location.state as { email?: string; password?: string } | null;
 
   const [showPassword, setShowPassword] = React.useState(false);
   const handleClickShowPassword = () => {
@@ -69,8 +71,9 @@ const AuthLogin = () => {
     <>
       <Formik
         initialValues={{
-          email: "",
-          password: "",
+          // ✅ 如果有传入值则自动填入，否则为空
+          email: locationState?.email ?? "",
+          password: locationState?.password ?? "",
           submit: null
         }}
         validationSchema={Yup.object().shape({
