@@ -101,12 +101,10 @@ const AuthRegister = () => {
           .required(t("register.password_confirm_required").toString()),
         invite_code: siteConfig?.is_invite_force
           ? Yup.string()
-            // .max(8, t("register.invite_code_max").toString())
             .required(t("register.invite_code_required").toString())
           : Yup.string().max(8, t("register.invite_code_max").toString()),
         email_code: siteConfig?.is_email_verify
           ? Yup.number()
-            // .max(6, t("register.email_code_max").toString())
             .required(t("register.email_code_required").toString())
           : Yup.number().negative()
       }),
@@ -114,6 +112,7 @@ const AuthRegister = () => {
   );
 
   const isshowwhiteemail = siteConfig?.email_whitelist_suffix!=null && siteConfig?.email_whitelist_suffix != 0;
+
   const handleRegister = async (values: RegisterPayload, token: string) => {
     try {
       await register({
@@ -135,30 +134,30 @@ const AuthRegister = () => {
           });
         })
         .catch((error) => {
-          // 确保错误信息正确设置
-          if (scriptedRef.current) {
-            // 使用 Formik 的 setErrors 和 setStatus 需要通过回调传递
-            setTempValues(null); // 清空临时值
-            enqueueSnackbar(error?.data?.message || error.message, { variant: "error" });
-            ReactGA.event("register", {
-              category: "auth",
-              label: "register",
-              method: "email",
-              success: false,
-              error: error?.data?.message || error.message,
-              email: values.email,
-              values
-            });
-          }
+          // ✅ 修复：去掉 scriptedRef 判断，确保错误提示始终显示
+          setTempValues(null);
+          enqueueSnackbar(
+            error?.data?.message || error?.message || t("notice::register_failed"),
+            { variant: "error" }
+          );
+          ReactGA.event("register", {
+            category: "auth",
+            label: "register",
+            method: "email",
+            success: false,
+            error: error?.data?.message || error?.message,
+            email: values.email,
+            values
+          });
         });
     } catch (err: any) {
       console.error(err);
-      if (scriptedRef.current) {
-        setTempValues(null);
-        enqueueSnackbar(t("notice::register_failed"), { variant: "error" });
-      }
+      // ✅ 修复：去掉 scriptedRef 判断，确保错误提示始终显示
+      setTempValues(null);
+      enqueueSnackbar(t("notice::register_failed"), { variant: "error" });
     }
   };
+
   return (
     <>
       <Formik
@@ -180,7 +179,6 @@ const AuthRegister = () => {
             return;
           }
           if (siteConfig?.is_recaptcha === 1) {
-            // 存储表单值并打开 Turnstile 对话框
             setTempValues({
               email: values.email,
               password: values.password,
@@ -188,9 +186,8 @@ const AuthRegister = () => {
               email_code: siteConfig?.is_email_verify ? values.email_code : ""
             });
             setOpenTurnstile(true);
-            setSubmitting(false); // 阻止表单继续提交
+            setSubmitting(false);
           } else {
-            // 不需要 Turnstile，直接注册
             handleRegister({
               email: values.email,
               password: values.password,
@@ -227,8 +224,8 @@ const AuthRegister = () => {
                   />
                   {isshowwhiteemail && (
                     <FormHelperText error id="helper-text-email-signup">
-                          仅支持{Array.isArray(siteConfig?.email_whitelist_suffix) ? siteConfig.email_whitelist_suffix.join(", ") : siteConfig?.email_whitelist_suffix}注册
-                  </FormHelperText>
+                      仅支持{Array.isArray(siteConfig?.email_whitelist_suffix) ? siteConfig.email_whitelist_suffix.join(", ") : siteConfig?.email_whitelist_suffix}注册
+                    </FormHelperText>
                   )}
                   {touched.email && errors.email && (
                     <FormHelperText error id="helper-text-email-signup">
@@ -259,8 +256,7 @@ const AuthRegister = () => {
                           width: "100%",
                           margin: "8px",
                           padding: "10px",
-                          border: `1px solid ${theme.palette.mode === "dark" ? theme.palette.grey[200] : theme.palette.grey[300]
-                            }`,
+                          border: `1px solid ${theme.palette.mode === "dark" ? theme.palette.grey[200] : theme.palette.grey[300]}`,
                           borderRadius: 4,
                           ":hover": {
                             borderColor: theme.palette.primary.main
@@ -408,9 +404,7 @@ const AuthRegister = () => {
                     alignItems: "flex-start"
                   }}
                   label={
-                    <Typography variant={"body2"} sx={{
-                      lineHeight: 2.9,
-                    }}>
+                    <Typography variant={"body2"} sx={{ lineHeight: 2.9 }}>
                       <Trans i18nKey={"register.license_agree"}>
                         <Link
                           id={"terms-of-service"}
@@ -424,11 +418,11 @@ const AuthRegister = () => {
                   }
                 />
               </Grid>
-              {/* {errors.submit && (
+              {errors.submit && (
                 <Grid item xs={12}>
                   <FormHelperText error>{errors.submit}</FormHelperText>
                 </Grid>
-              )} */}
+              )}
               <Grid item xs={12}>
                 <AnimateButton>
                   <Button
