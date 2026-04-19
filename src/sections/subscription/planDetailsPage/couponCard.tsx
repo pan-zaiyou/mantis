@@ -3,15 +3,12 @@ import { Formik } from "formik";
 import { useTranslation } from "react-i18next";
 
 // material-ui
-import { Box, FormHelperText, IconButton, InputAdornment, OutlinedInput, Tooltip } from "@mui/material";
+import { Box, Button, FormHelperText, OutlinedInput, Stack } from "@mui/material";
 
 // project imports
 import MainCard from "@/components/MainCard";
 import { useCheckCouponMutation } from "@/store/services/api";
 import { usePlanDetailContext } from "@/sections/subscription/planDetailsPage/context";
-
-// assets
-import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 
 const CouponCard: React.FC = () => {
   const { t } = useTranslation();
@@ -52,35 +49,37 @@ const CouponCard: React.FC = () => {
       >
         {({ values, handleChange, handleSubmit, handleBlur, errors, touched }) => (
           <Box component={"form"} onSubmit={handleSubmit}>
-            <OutlinedInput
-              fullWidth
-              name={"coupon"}
-              placeholder={t("subscription.plan.coupon-card.placeholder").toString()}
-              disabled={isSubmitting || couponCode !== null}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              value={couponCode !== null ? couponCode.code : values.coupon}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                }
-              }}
-              endAdornment={
-                <InputAdornment position={"end"}>
-                  <Tooltip
-                    title={t("subscription.plan.coupon-card.tooltip", {
-                      context: couponCode !== null ? "reset" : "add"
-                    }).toString()}
-                    placement={"bottom"}
-                  >
-                    <IconButton edge={"end"} type={"submit"}>
-                      {couponCode !== null ? <CloseCircleOutlined /> : <CheckCircleOutlined />}
-                    </IconButton>
-                  </Tooltip>
-                </InputAdornment>
-              }
-            />
-            {touched.coupon && errors.coupon && <FormHelperText error>{errors.coupon}</FormHelperText>}
+            <Stack direction="row" spacing={1}>
+              <OutlinedInput
+                fullWidth
+                name={"coupon"}
+                placeholder={t("subscription.plan.coupon-card.placeholder").toString()}
+                disabled={isSubmitting || couponCode !== null}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                value={couponCode !== null ? couponCode.code : values.coupon}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                  }
+                }}
+                sx={{ borderRadius: "12px" }}
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={isSubmitting}
+                color={couponCode !== null ? "error" : "primary"}
+                sx={{ whiteSpace: "nowrap", borderRadius: "12px" }}
+              >
+                {couponCode !== null
+                  ? t("subscription.plan.coupon-card.tooltip", { context: "reset" })
+                  : t("subscription.plan.coupon-card.tooltip", { context: "add" })}
+              </Button>
+            </Stack>
+            {touched.coupon && errors.coupon && (
+              <FormHelperText error>{errors.coupon}</FormHelperText>
+            )}
           </Box>
         )}
       </Formik>
