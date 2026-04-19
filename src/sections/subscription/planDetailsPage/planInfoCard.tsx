@@ -35,7 +35,7 @@ const PlanInfoCard: React.FC = () => {
       content={false}
     >
       {!isLoading && data && (
-        <div>
+        <div style={{ padding: "16px" }}>
           {Array.isArray(parsedContent) ? (
             parsedContent.map((item: { feature: string; support: boolean }, index: number) => (
               <Typography key={index} variant="body1" paragraph component="div" display="flex" alignItems="center">
