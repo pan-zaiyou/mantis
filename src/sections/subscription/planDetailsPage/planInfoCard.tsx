@@ -35,10 +35,17 @@ const PlanInfoCard: React.FC = () => {
       content={false}
     >
       {!isLoading && data && (
-        <div style={{ padding: "16px" }}>
+        <div style={{ paddingTop: "16px", paddingBottom: "16px" }}>
           {Array.isArray(parsedContent) ? (
-            parsedContent.map((item: { feature: string; support: boolean }, index: number) => (
-              <Typography key={index} variant="body1" paragraph component="div" display="flex" alignItems="center">
+            parsedContent.map((item: { feature: string; support: boolean }, index: number, arr) => (
+              <Typography
+                key={index}
+                variant="body1"
+                component="div"
+                display="flex"
+                alignItems="center"
+                style={{ marginBottom: index === arr.length - 1 ? 0 : 6 }}
+              >
                 {item.support ? (
                   <CheckCircleIcon color="success" style={{ marginRight: 8 }} />
                 ) : (
