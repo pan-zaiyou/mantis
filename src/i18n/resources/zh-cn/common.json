@@ -267,8 +267,8 @@
       "coupon-card": {
         "title": "优惠券",
         "placeholder": "输入优惠券码，若无可不填",
-        "tooltip_add": "使用优惠券",
-        "tooltip_reset": "重置优惠券"
+        "tooltip_add": "验证",
+        "tooltip_reset": "重置"
       },
       "order-info-card": {
         "title": "订单信息",
