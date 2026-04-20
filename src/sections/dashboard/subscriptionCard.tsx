@@ -32,15 +32,11 @@ const GradientLinearProgress = styled(LinearProgress, {
     usedRatio >= 0.9 ? "#ff4d4f" :
     usedRatio >= 0.7 ? "#fa8c16" :
     "#1677ff";
-  const trackColor =
-    usedRatio >= 0.9 ? "#fff1f0" :
-    usedRatio >= 0.7 ? "#fff7e6" :
-    "#e6f4ff";
   return {
     height: 10,
     borderRadius: 100,
     [`&.${linearProgressClasses.colorPrimary}`]: {
-      backgroundColor: trackColor
+      backgroundColor: "rgba(128,128,128,0.15)"
     },
     [`& .${linearProgressClasses.bar}`]: {
       borderRadius: 100,
@@ -86,29 +82,54 @@ const SubscriptionCard: React.FC = () => {
     : false;
 
   const isExpiringSoon = daysLeft !== null && daysLeft <= 7 && !isExpired;
+  const isHeavy = trafficUsed >= 0.7 && !isExpired;
+
+  // 右上角标签
+  const statusChip = useMemo(() => {
+    if (!subscriptionInfo || subscriptionInfo.plan_id === null) return null;
+    if (isExpired) {
+      return <Chip label="✕ 已到期" size="small" color="error" sx={{ fontWeight: 700 }} />;
+    }
+    if (isExpiringSoon) {
+      return (
+        <Chip
+          label={`⏰ 还剩 ${daysLeft} 天`}
+          size="small"
+          sx={{ background: "#fff7e6", color: "#fa8c16", fontWeight: 700, border: "1px solid #ffd591" }}
+        />
+      );
+    }
+    if (isHeavy) {
+      return (
+        <Chip
+          label="⚠ 流量紧张"
+          size="small"
+          sx={{ background: "#fff7e6", color: "#fa8c16", fontWeight: 700, border: "1px solid #ffd591" }}
+        />
+      );
+    }
+    return (
+      <Chip
+        label="✓ 正常"
+        size="small"
+        sx={{ background: "#f6ffed", color: "#52c41a", fontWeight: 700, border: "1px solid #b7eb8f" }}
+      />
+    );
+  }, [subscriptionInfo, isExpired, isExpiringSoon, isHeavy, daysLeft]);
 
   return (
-    <MainCard title={<Trans i18nKey={"dashboard.subscription-card.title"}>My Subscription</Trans>}>
+    <MainCard
+      title={<Trans i18nKey={"dashboard.subscription-card.title"}>My Subscription</Trans>}
+      secondary={statusChip}
+    >
       {/* ── 有套餐 ── */}
       {subscriptionInfo && subscriptionInfo.plan_id !== null && (
         <Stack spacing={2.5}>
 
-          {/* 套餐名 + 状态 */}
-          <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
-            <Typography component={"h6"} variant={"h4"}>
-              {subscriptionInfo.plan!.name}
-            </Typography>
-            {isExpired && (
-              <Chip label="已到期" size="small" color="error" sx={{ fontWeight: 700 }} />
-            )}
-            {isExpiringSoon && (
-              <Chip
-                label={`还剩 ${daysLeft} 天`}
-                size="small"
-                sx={{ background: "#fff7e6", color: "#fa8c16", fontWeight: 700, border: "1px solid #ffd591" }}
-              />
-            )}
-          </Box>
+          {/* 套餐名 */}
+          <Typography component={"h6"} variant={"h4"}>
+            {subscriptionInfo.plan!.name}
+          </Typography>
 
           {/* 到期时间 */}
           <Typography
@@ -130,13 +151,13 @@ const SubscriptionCard: React.FC = () => {
             })}
           </Typography>
 
-          {/* 流量三列 */}
+          {/* 流量三列 — 用 action.hover 自动适配亮/暗模式 */}
           <Box
             sx={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr 1fr",
               gap: 1,
-              background: "#f8fafd",
+              bgcolor: "action.hover",
               borderRadius: 2,
               padding: "12px 16px"
             }}
@@ -146,7 +167,7 @@ const SubscriptionCard: React.FC = () => {
                 已用
               </Typography>
               <Typography variant="h5" sx={{ fontWeight: 700, color: trafficUsed >= 0.9 ? "error.main" : trafficUsed >= 0.7 ? "warning.main" : "primary.main", mt: 0.3 }}>
-                {usedGB} <span style={{ fontSize: 12, fontWeight: 500, color: "#8c8c8c" }}>GB</span>
+                {usedGB} <span style={{ fontSize: 12, fontWeight: 500 }}>GB</span>
               </Typography>
             </Box>
             <Box sx={{ textAlign: "center" }}>
@@ -154,7 +175,7 @@ const SubscriptionCard: React.FC = () => {
                 剩余
               </Typography>
               <Typography variant="h5" sx={{ fontWeight: 700, color: "success.main", mt: 0.3 }}>
-                {remainGB} <span style={{ fontSize: 12, fontWeight: 500, color: "#8c8c8c" }}>GB</span>
+                {remainGB} <span style={{ fontSize: 12, fontWeight: 500 }}>GB</span>
               </Typography>
             </Box>
             <Box sx={{ textAlign: "right" }}>
@@ -162,7 +183,7 @@ const SubscriptionCard: React.FC = () => {
                 总量
               </Typography>
               <Typography variant="h5" sx={{ fontWeight: 700, color: "text.primary", mt: 0.3 }}>
-                {totalGB} <span style={{ fontSize: 12, fontWeight: 500, color: "#8c8c8c" }}>GB</span>
+                {totalGB} <span style={{ fontSize: 12, fontWeight: 500 }}>GB</span>
               </Typography>
             </Box>
           </Box>
