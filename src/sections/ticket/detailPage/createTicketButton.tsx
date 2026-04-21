@@ -123,9 +123,13 @@ const CreateTicketButton: React.FC = () => {
                       error={touched.level && Boolean(errors.level)}
                       label={t("ticket.drawer.create_dialog.level", { context: "label" })}
                       fullWidth
+                      MenuProps={{
+                        disablePortal: false,
+                        style: { zIndex: 9999 },
+                      }}
                     >
                       {[TicketLevel.Low, TicketLevel.Medium, TicketLevel.High].map((level) => (
-                        <MenuItem component={"option"} value={level} key={level}>
+                        <MenuItem value={level} key={level}>
                           {t("ticket.drawer.create_dialog.level", { context: level })}
                         </MenuItem>
                       ))}
