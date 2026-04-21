@@ -1,6 +1,5 @@
 import React, { useCallback } from "react";
 import {
-  Box,
   Button,
   Dialog,
   DialogActions,
@@ -8,11 +7,8 @@ import {
   DialogTitle,
   FormControl,
   FormHelperText,
-  FormLabel,
   IconButton,
   InputLabel,
-  MenuItem,
-  Select,
   Stack,
   TextField
 } from "@mui/material";
@@ -31,6 +27,18 @@ const useStyles = makeStyles()((theme) => ({
   root: {
     padding: theme.spacing(2, 0),
     backgroundColor: "transparent"
+  },
+  nativeSelect: {
+    width: "100%",
+    padding: "16.5px 14px",
+    fontSize: "1rem",
+    fontFamily: "inherit",
+    color: "inherit",
+    backgroundColor: "transparent",
+    border: "1px solid rgba(0, 0, 0, 0.23)",
+    borderRadius: "4px",
+    cursor: "pointer",
+    outline: "none"
   }
 }));
 
@@ -111,32 +119,34 @@ const CreateTicketButton: React.FC = () => {
                     fullWidth
                   />
                   <FormControl fullWidth>
-                    <InputLabel htmlFor={"level-select"}>
+                    <InputLabel
+                      htmlFor={"level-select"}
+                      shrink
+                      sx={{ background: "white", px: 0.5 }}
+                    >
                       {t("ticket.drawer.create_dialog.level", { context: "label" })}
                     </InputLabel>
-                    <Select
+                    <select
                       id={"level-select"}
                       name={"level"}
                       value={values.level}
                       onChange={handleChange}
                       onBlur={handleBlur}
-                      error={touched.level && Boolean(errors.level)}
-                      label={t("ticket.drawer.create_dialog.level", { context: "label" })}
-                      fullWidth
-                      MenuProps={{
-                        disablePortal: false,
-                        style: { zIndex: 9999 },
+                      className={classes.nativeSelect}
+                      style={{
+                        marginTop: "8px",
+                        borderColor: touched.level && errors.level ? "#d32f2f" : "rgba(0, 0, 0, 0.23)"
                       }}
                     >
                       {[TicketLevel.Low, TicketLevel.Medium, TicketLevel.High].map((level) => (
-                        <MenuItem value={level} key={level}>
+                        <option value={level} key={level}>
                           {t("ticket.drawer.create_dialog.level", { context: level })}
-                        </MenuItem>
+                        </option>
                       ))}
-                    </Select>
+                    </select>
                     {touched.level && errors.level && (
-                      <FormHelperText error={touched.level && Boolean(errors.level)}>
-                        {touched.level && errors.level}
+                      <FormHelperText error>
+                        {errors.level}
                       </FormHelperText>
                     )}
                   </FormControl>
