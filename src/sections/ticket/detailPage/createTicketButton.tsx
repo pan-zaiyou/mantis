@@ -31,14 +31,18 @@ const useStyles = makeStyles()((theme) => ({
   nativeSelect: {
     width: "100%",
     padding: "16.5px 14px",
-    fontSize: "1rem",
+    fontSize: "16px",
     fontFamily: "inherit",
     color: "inherit",
-    backgroundColor: "transparent",
+    backgroundColor: "white",
     border: "1px solid rgba(0, 0, 0, 0.23)",
     borderRadius: "4px",
     cursor: "pointer",
-    outline: "none"
+    outline: "none",
+    WebkitAppearance: "menulist" as any,
+    appearance: "menulist" as any,
+    position: "relative" as any,
+    zIndex: 9999
   }
 }));
 
@@ -51,7 +55,6 @@ const CreateTicketButton: React.FC = () => {
 
   const handleSubmit = useCallback(
     async (values: TicketPayload, { setSubmitting, setStatus, setErrors }: FormikHelpers<TicketPayload>) => {
-      console.log(values);
       setSubmitting(true);
       try {
         await saveTicket(values).unwrap();
@@ -73,7 +76,23 @@ const CreateTicketButton: React.FC = () => {
       <IconButton onClick={() => setOpen(true)}>
         <PlusOutlined />
       </IconButton>
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        fullWidth
+        disableScrollLock={true}
+        disableEnforceFocus={true}
+        disableAutoFocus={true}
+        keepMounted={false}
+        sx={{
+          "& .MuiDialog-paper": {
+            overflow: "visible"
+          },
+          "& .MuiDialogContent-root": {
+            overflow: "visible"
+          }
+        }}
+      >
         <DialogTitle>{t("ticket.drawer.create_dialog.title")}</DialogTitle>
         <Formik
           initialValues={
@@ -90,7 +109,9 @@ const CreateTicketButton: React.FC = () => {
             message: Yup.string().required(
               t("ticket.drawer.create_dialog.message", { context: "required" }).toString()
             ),
-            level: Yup.string().required(t("ticket.drawer.create_dialog.level", { context: "required" }).toString())
+            level: Yup.string().required(
+              t("ticket.drawer.create_dialog.level", { context: "required" }).toString()
+            )
           })}
           onSubmit={handleSubmit}
         >
@@ -135,7 +156,8 @@ const CreateTicketButton: React.FC = () => {
                       className={classes.nativeSelect}
                       style={{
                         marginTop: "8px",
-                        borderColor: touched.level && errors.level ? "#d32f2f" : "rgba(0, 0, 0, 0.23)"
+                        borderColor:
+                          touched.level && errors.level ? "#d32f2f" : "rgba(0, 0, 0, 0.23)"
                       }}
                     >
                       {[TicketLevel.Low, TicketLevel.Medium, TicketLevel.High].map((level) => (
