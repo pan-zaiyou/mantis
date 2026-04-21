@@ -28,7 +28,6 @@ const Dashboard: React.FC = () => {
   const { classes } = useStyles();
 
   useEffect(() => {
-    // 检查 localStorage 中是否存在弹框关闭的标记
     const hasClosedNotice = localStorage.getItem('hasClosedNotice');
     if (hasClosedNotice) {
       setLatestNotice(null);
@@ -37,7 +36,6 @@ const Dashboard: React.FC = () => {
 
   const handleCloseDialog = () => {
     setLatestNotice(null);
-    // 弹框关闭后设置标记
     localStorage.setItem('hasClosedNotice', 'true');
   };
 
@@ -62,15 +60,12 @@ const Dashboard: React.FC = () => {
       </Grid>
       <Grid item xs={12}>
         <NoticeCarousel onLatestNotice={handleLatestNotice} />
-      </Grid>
-      <Grid item xs={12}>
         <SubscriptionCard />
       </Grid>
       <Grid item xs={12}>
         <ShortcutCard />
       </Grid>
 
-      {/* 弹出最近的公告 */}
       {latestNotice && (
         <Dialog open={Boolean(latestNotice)} onClose={handleCloseDialog} fullWidth>
           <Box
