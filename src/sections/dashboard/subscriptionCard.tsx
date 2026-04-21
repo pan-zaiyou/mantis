@@ -88,14 +88,21 @@ const SubscriptionCard: React.FC = () => {
   const statusChip = useMemo(() => {
     if (!subscriptionInfo || subscriptionInfo.plan_id === null) return null;
     if (isExpired) {
-      return <Chip label="✕ 已到期" size="small" color="error" sx={{ fontWeight: 700 }} />;
+      return (
+        <Chip
+          label="✕ 已到期"
+          size="small"
+          color="error"
+          sx={{ fontWeight: 700, borderRadius: "4px" }}
+        />
+      );
     }
     if (isExpiringSoon) {
       return (
         <Chip
           label={`⏰ 还剩 ${daysLeft} 天`}
           size="small"
-          sx={{ background: "#fff7e6", color: "#fa8c16", fontWeight: 700, border: "1px solid #ffd591" }}
+          sx={{ fontWeight: 700, borderRadius: "4px", background: "#fff7e6", color: "#fa8c16", border: "1px solid #ffd591" }}
         />
       );
     }
@@ -104,7 +111,7 @@ const SubscriptionCard: React.FC = () => {
         <Chip
           label="⚠ 流量紧张"
           size="small"
-          sx={{ background: "#fff7e6", color: "#fa8c16", fontWeight: 700, border: "1px solid #ffd591" }}
+          sx={{ fontWeight: 700, borderRadius: "4px", background: "#fff7e6", color: "#fa8c16", border: "1px solid #ffd591" }}
         />
       );
     }
@@ -112,7 +119,7 @@ const SubscriptionCard: React.FC = () => {
       <Chip
         label="✓ 正常"
         size="small"
-        sx={{ background: "#f6ffed", color: "#52c41a", fontWeight: 700, border: "1px solid #b7eb8f" }}
+        sx={{ fontWeight: 700, borderRadius: "4px", background: "#f6ffed", color: "#52c41a", border: "1px solid #b7eb8f" }}
       />
     );
   }, [subscriptionInfo, isExpired, isExpiringSoon, isHeavy, daysLeft]);
@@ -151,7 +158,7 @@ const SubscriptionCard: React.FC = () => {
             })}
           </Typography>
 
-          {/* 流量三列 — 用 action.hover 自动适配亮/暗模式 */}
+          {/* 流量三列 */}
           <Box
             sx={{
               display: "grid",
