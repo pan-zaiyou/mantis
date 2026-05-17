@@ -179,7 +179,8 @@ const NoticeCarousel: React.FC<{ onLatestNotice?: (notice: Notice) => void }> = 
 
   const { classes } = useStyles();
   const theme = useTheme();
-  const isMobileSize = useMediaQuery(theme.breakpoints.down("xs"));
+  // 修复：down("xs") 永远为 false，改为 down("sm")
+  const isMobileSize = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     if (notices && notices.length > 0) {
