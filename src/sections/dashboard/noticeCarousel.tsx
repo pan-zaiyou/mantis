@@ -3,7 +3,19 @@ import { useTranslation } from "react-i18next";
 import dayjs from "dayjs";
 
 // material-ui
-import { Box, ButtonBase, Chip, Dialog, DialogContent, DialogTitle as MuiDialogTitle, Typography, useMediaQuery } from "@mui/material";
+import {
+  Box,
+  ButtonBase,
+  Chip,
+  Dialog,
+  DialogContent,
+  DialogTitle as MuiDialogTitle,
+  Typography,
+  useMediaQuery,
+  IconButton
+} from "@mui/material";
+
+import CloseIcon from "@mui/icons-material/Close";
 import Carousel from "react-material-ui-carousel";
 
 // project imports
@@ -21,12 +33,14 @@ const useStyles = makeStyles()((theme) => ({
   carousel: {
     borderRadius: theme.shape.borderRadius,
   },
+
   item: {
     height: theme.spacing(24),
     width: "100%",
     boxShadow: "0 1px 3px rgb(219 226 239 / 50%), 0 1px 2px rgb(219 226 239 / 50%)",
     textAlign: "left",
   },
+
   mask: {
     position: "absolute",
     top: 0,
@@ -36,11 +50,13 @@ const useStyles = makeStyles()((theme) => ({
     background: "linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #000000 100%)",
     opacity: 0.5,
   },
+
   chip: {
     position: "absolute",
     top: theme.spacing(2),
     left: theme.spacing(2),
   },
+
   textArea: {
     position: "absolute",
     bottom: theme.spacing(1),
@@ -49,11 +65,7 @@ const useStyles = makeStyles()((theme) => ({
     color: theme.palette.primary.contrastText,
     padding: theme.spacing(1, 1, 1, 0.5),
   },
-  dialogImage: {
-    width: "100%",
-    height: "auto",
-    marginBottom: theme.spacing(2),
-  },
+
   dialogTitle: {
     fontWeight: "bold",
     fontSize: "1.5rem",
@@ -88,20 +100,46 @@ const NoticeBlock: React.FC<{ notice: Notice }> = ({ notice }) => {
         }}
       >
         <Box className={classes.mask} />
-        <Chip className={classes.chip} label={t("dashboard.announcement.chip")} color="secondary" />
+
+        <Chip
+          className={classes.chip}
+          label={t("dashboard.announcement.chip")}
+          color="secondary"
+        />
+
         <Box className={classes.textArea}>
           <Typography variant={"h4"} mb={0.5}>
             {notice.title}
           </Typography>
-          <Typography variant={"body1"}>{dayjs.unix(notice.created_at).format("YYYY-MM-DD")}</Typography>
+
+          <Typography variant={"body1"}>
+            {dayjs.unix(notice.created_at).format("YYYY-MM-DD")}
+          </Typography>
         </Box>
       </Box>
+
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
-        <Box component="img" src={notice.img_url || defaultBackgroundImage} alt={notice.title} className={classes.dialogImage} />
-        <MuiDialogTitle className={classes.dialogTitle}>{notice.title}</MuiDialogTitle>
-        <DialogContent sx={{ minHeight: 160 }}>
-          <MuiMarkdown>{notice.content}</MuiMarkdown>
-        </DialogContent>
+        <Box sx={{ position: "relative" }}>
+          <IconButton
+            onClick={() => setOpen(false)}
+            sx={{
+              position: "absolute",
+              right: 10,
+              top: 10,
+              color: "#999",
+            }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+
+          <MuiDialogTitle className={classes.dialogTitle}>
+            {notice.title}
+          </MuiDialogTitle>
+
+          <DialogContent sx={{ minHeight: 160 }}>
+            <MuiMarkdown>{notice.content}</MuiMarkdown>
+          </DialogContent>
+        </Box>
       </Dialog>
     </>
   );
@@ -119,6 +157,7 @@ const NoticeCarousel: React.FC<{ onLatestNotice?: (notice: Notice) => void }> = 
       const latestNotice = notices.reduce((prev, current) =>
         dayjs.unix(current.created_at).isAfter(dayjs.unix(prev.created_at)) ? current : prev
       );
+
       if (onLatestNotice) {
         onLatestNotice(latestNotice);
       }
