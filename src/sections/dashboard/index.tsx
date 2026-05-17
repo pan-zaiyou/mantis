@@ -81,7 +81,6 @@ const Dashboard: React.FC = () => {
             sx: {
               mx: 2,
               width: "calc(100% - 32px)",
-              borderRadius: 2,
             },
           }}
         >
