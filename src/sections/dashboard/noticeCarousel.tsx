@@ -12,7 +12,7 @@ import {
   DialogTitle as MuiDialogTitle,
   Typography,
   useMediaQuery,
-  IconButton
+  IconButton,
 } from "@mui/material";
 
 import CloseIcon from "@mui/icons-material/Close";
@@ -69,6 +69,12 @@ const useStyles = makeStyles()((theme) => ({
   dialogTitle: {
     fontWeight: "bold",
     fontSize: "1.5rem",
+    paddingRight: theme.spacing(5),
+
+    [theme.breakpoints.down("sm")]: {
+      fontSize: "1.2rem",
+      lineHeight: 1.4,
+    },
   },
 }));
 
@@ -86,7 +92,7 @@ const NoticeBlock: React.FC<{ notice: Notice }> = ({ notice }) => {
         className={classes.item}
         sx={{
           backgroundImage: `url(${notice.img_url || defaultBackgroundImage})`,
-          backgroundSize: "cover"
+          backgroundSize: "cover",
         }}
         onClick={() => {
           setOpen(true);
@@ -118,7 +124,19 @@ const NoticeBlock: React.FC<{ notice: Notice }> = ({ notice }) => {
         </Box>
       </Box>
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            mx: 2,
+            width: "calc(100% - 32px)",
+            borderRadius: 2,
+          },
+        }}
+      >
         <Box sx={{ position: "relative" }}>
           <IconButton
             onClick={() => setOpen(false)}
@@ -127,6 +145,7 @@ const NoticeBlock: React.FC<{ notice: Notice }> = ({ notice }) => {
               right: 10,
               top: 10,
               color: "#999",
+              zIndex: 2,
             }}
           >
             <CloseIcon fontSize="small" />
@@ -136,7 +155,18 @@ const NoticeBlock: React.FC<{ notice: Notice }> = ({ notice }) => {
             {notice.title}
           </MuiDialogTitle>
 
-          <DialogContent sx={{ minHeight: 160 }}>
+          <DialogContent
+            sx={{
+              minHeight: 160,
+              overflowY: "auto",
+              wordBreak: "break-word",
+              fontSize: {
+                xs: "0.95rem",
+                sm: "1rem",
+              },
+              lineHeight: 1.8,
+            }}
+          >
             <MuiMarkdown>{notice.content}</MuiMarkdown>
           </DialogContent>
         </Box>
