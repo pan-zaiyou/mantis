@@ -133,7 +133,6 @@ const NoticeBlock: React.FC<{ notice: Notice }> = ({ notice }) => {
           sx: {
             mx: 2,
             width: "calc(100% - 32px)",
-            borderRadius: 2,
           },
         }}
       >
