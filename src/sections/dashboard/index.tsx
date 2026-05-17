@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Grid,
   Dialog,
@@ -18,6 +18,8 @@ import MuiMarkdown from "mui-markdown";
 import { makeStyles } from "@/themes/hooks";
 import Notice from "@/model/notice";
 
+const NOTICE_CLOSED_KEY = "hasClosedNotice";
+
 const useStyles = makeStyles()((theme) => ({
   dialogTitle: {
     fontWeight: "bold",
@@ -30,24 +32,17 @@ const Dashboard: React.FC = () => {
   const [latestNotice, setLatestNotice] = useState<Notice | null>(null);
   const { classes } = useStyles();
 
-  useEffect(() => {
-    const hasClosedNotice = localStorage.getItem("hasClosedNotice");
-    if (hasClosedNotice) {
-      setLatestNotice(null);
-    }
-  }, []);
-
   const handleCloseDialog = () => {
     setLatestNotice(null);
-    localStorage.setItem("hasClosedNotice", "true");
+    localStorage.setItem(NOTICE_CLOSED_KEY, "true");
   };
 
-  const handleLatestNotice = (notice: Notice | null) => {
-    const hasClosedNotice = localStorage.getItem("hasClosedNotice");
+  const handleLatestNotice = useCallback((notice: Notice | null) => {
+    const hasClosedNotice = localStorage.getItem(NOTICE_CLOSED_KEY);
     if (!hasClosedNotice) {
       setLatestNotice(notice);
     }
-  };
+  }, []);
 
   return (
     <Grid
