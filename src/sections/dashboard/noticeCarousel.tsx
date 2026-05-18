@@ -82,7 +82,7 @@ const useStyles = makeStyles()((theme) => ({
     borderColor: "rgba(255,255,255,.55)",
     background: "rgba(0,0,0,.18)",
     backdropFilter: "blur(10px)",
-    borderRadius: theme.spacing(1.2),
+    borderRadius: theme.spacing(0.5),
     padding: theme.spacing(0.8, 2.2),
     fontWeight: 600,
     fontSize: "0.875rem",
