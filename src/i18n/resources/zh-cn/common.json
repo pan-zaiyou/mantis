@@ -146,7 +146,7 @@
   "dashboard": {
     "announcement": {
       "chip": "公告",
-      "title": "公告"
+      "title": "公告",
       "detail": "查看详情"
     },
     "subscription-card": {
